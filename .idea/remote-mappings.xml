@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="python@2a7501e3-8628-4021-a795-a1b0f727cca5" />
+        <remote-mappings server-id="python@sftp://tsq@119.45.150.18:3698/data1/tsq/conda/miniconda3/envs/topcls/bin/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/home/tsq/ybb" />
+            </list>
+          </settings>
+        </remote-mappings>
+        <remote-mappings server-id="python@sftp://tsq@119.45.150.18:3698/home/tsq/miniconda3/envs/ybb/bin/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/home/tsq/ybb" />
+            </list>
+          </settings>
+        </remote-mappings>
+      </list>
+    </list>
+  </component>
+</project>
