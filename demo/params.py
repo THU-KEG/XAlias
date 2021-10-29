@@ -1,5 +1,9 @@
 import argparse
 
+BMINF_FILL_KEYS = ['top_p', 'top_n', 'temperature', 'frequency_penalty', 'presence_penalty']
+BMINF_GEN_KEYS = ['max_tokens', 'top_n', 'top_p', 'temperature', 'frequency_penalty',
+                  'presence_penalty']
+
 
 def get_decode_param():
     parser = argparse.ArgumentParser()
@@ -47,3 +51,32 @@ def get_sample_param(args):
     parser.add_argument('--do_sample', action='store_false')
     """
     return args
+
+
+def reduce_args(args):
+    args_dict = vars(args)
+    if args.task == 'fill':
+        kwargs = {k: args_dict[k] for k in BMINF_FILL_KEYS}
+    else:
+        kwargs = {k: args_dict[k] for k in BMINF_GEN_KEYS}
+    return kwargs
+
+
+def get_bminf_param():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--task', type=str, default='generate', choices=['fill', 'generate'])
+    # gpu device
+    parser.add_argument('--gpu_id', type=int, default=2)
+    # shared decode params
+    parser.add_argument('--top_p', type=float, default=None)
+    parser.add_argument('--top_n', type=int, default=5)
+    parser.add_argument('--temperature', type=float, default=0.85)
+    parser.add_argument('--frequency_penalty', type=float, default=0)
+    parser.add_argument('--presence_penalty', type=float, default=0)
+    # generate task params
+    parser.add_argument('--max_tokens', type=int, default=16)
+
+    args = parser.parse_args()
+    kwargs = reduce_args(args)
+
+    return args, kwargs

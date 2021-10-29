@@ -9,3 +9,13 @@ Here are the packages:
 - demo
   - You can try out some examples here.
 - src
+
+
+
+
+
+# Interesting Result
+
+Using the **same parameters** may get **different outputs:**
+
+![](./pic/20211029162058.png)
