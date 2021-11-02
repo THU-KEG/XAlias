@@ -64,10 +64,14 @@ def reduce_args(args):
 
 def get_bminf_param():
     parser = argparse.ArgumentParser()
+    # task params
+    parser.add_argument('--source_word', type=str, default='北京大学', choices=['北京大学', '清华大学', '江西省', '北京'])
+    parser.add_argument('--language', type=str, default='ch', choices=['en', 'ch'])
     parser.add_argument('--task', type=str, default='generate', choices=['fill', 'generate'])
     # gpu device
     parser.add_argument('--gpu_id', type=int, default=2)
     # shared decode params
+    parser.add_argument('--seed', type=int, default=1453)
     parser.add_argument('--top_p', type=float, default=None)
     parser.add_argument('--top_n', type=int, default=5)
     parser.add_argument('--temperature', type=float, default=0.85)

@@ -13,13 +13,13 @@ To use cpm2 :
 In gpt2 style:
 
 ```
-python -m demo.generate_cpm2 --task generate --max_tokens 16 --temperature 0.85 --top_n 5 --top_p 1.0 
+python -m demo.generate_cpm2 --task generate --max_tokens 16 --temperature 0.85 --top_n 5 --top_p 1.0 --seed 1453
 ```
 
 In Bert style:
 
 ```
-python -m demo.generate_cpm2 --task fill --temperature 0.5 --top_n 5 --top_p 0.95 
+python -m demo.generate_cpm2 --task fill --temperature 0.5 --top_n 5 --top_p 0.95 --seed 1453
 ```
 
 
@@ -98,12 +98,23 @@ IndexError: index 50256 is out of bounds for dimension 1 with size 30000
 
 ## cpm2
 
-### bminf reproduction
+### bminf beam search
 
 I use the [bminf](https://github.com/OpenBMB/BMInf/blob/master/README-ZH.md) package to load CPM2.
 
-Now, we can get some reasonable outputs like 北京大学也称为“北大”
+However, [bminf](https://github.com/OpenBMB/BMInf/blob/master/README-ZH.md) doesn't have all the decoding strategies which huggingface provide.
 
-But I don't why this can not be reproduced even if I use the same parameters.
+I learn some background knowledge from huggingface's [blog](https://huggingface.co/blog/how-to-generate).
 
-I will check the API of bminf in the weekends !
+Here are three kinds of decoding strategies for **auto-regressive** language generation:
+
+- Greedy search
+  - Selects the word with the highest probability as its next word
+- Beam search
+  - Beam search will always find an output sequence with higher probability than greedy search, but is not able to bring random results. It is mainly used in fixed-length text generation like Summarization.
+- Sampling
+  - Can random generate text. Mainly used for story/dialog generation
+
+Bminf only provide the **sampling** strategy.
+
+I will try to write a beam search API.

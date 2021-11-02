@@ -1,12 +1,10 @@
 import bminf
 import sys
+import numpy as np
 from demo.params import get_bminf_param
-
-input_text = """北京大学也称为"""
+from src.pattern import Verbalizer
 
 TOKEN_SPAN = "<span>"
-
-masked_input = "北京大学也被称为<span>"
 
 
 def fill_blank(cpm2: bminf.models.CPM2, text, kwargs: dict):
@@ -27,7 +25,10 @@ def generate(model: bminf.models.CPM2, text, kwargs: dict):
     print("Input: ", text)
     sys.stdout.write("Output: %s" % text)
     stoped = False
+    total_len = len(text)
     while not stoped:
+        if total_len > kwargs['max_tokens']:
+            break
         value, stoped = model.generate(
             text, **kwargs
             # max_tokens=32,
@@ -39,20 +40,28 @@ def generate(model: bminf.models.CPM2, text, kwargs: dict):
         )
         text += value
         sys.stdout.write(value)
+        total_len += len(value)
         sys.stdout.flush()
     sys.stdout.write("\n")
 
 
+def get_input_texts(args):
+    verbalizer = Verbalizer(args.language, args.task)
+    return verbalizer.convert_all(args.source_word)
+
+
 def main():
     print("Loading model")
-    # cpm2_1 = bminf.models.CPM2(device=1, memory_limit=6019 * 1024 * 1024)
     args, kwargs = get_bminf_param()
+    input_texts = get_input_texts(args)
+    np.random.seed(args.seed)
     cpm2_1 = bminf.models.CPM2(device=args.gpu_id)
     print("kwargs:", kwargs)
-    if args.task == 'fill':
-        fill_blank(cpm2_1, masked_input, kwargs)
-    else:
-        generate(cpm2_1, input_text, kwargs)
+    for input_text in input_texts:
+        if args.task == 'fill':
+            fill_blank(cpm2_1, input_text, kwargs)
+        else:
+            generate(cpm2_1, input_text, kwargs)
 
 
 if __name__ == "__main__":
