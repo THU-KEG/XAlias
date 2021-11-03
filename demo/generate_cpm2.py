@@ -2,7 +2,7 @@ import bminf
 import sys
 import numpy as np
 from demo.params import get_bminf_param
-from src.pattern import Verbalizer
+from src.model.pattern import Verbalizer
 
 TOKEN_SPAN = "<span>"
 
