@@ -16,6 +16,12 @@ In gpt2 style:
 python -m demo.generate_cpm2 --task generate --max_tokens 16 --temperature 0.85 --top_n 5 --top_p 1.0 --seed 1453
 ```
 
+Beam search:
+
+```
+python -m demo.generate_cpm2 --task generate --max_tokens 16 --num_beams 2 --num_return_sequences 2 --seed 1453
+```
+
 In Bert style:
 
 ```

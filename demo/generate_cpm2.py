@@ -3,11 +3,12 @@ import sys
 import numpy as np
 from demo.params import get_bminf_param
 from src.model.pattern import Verbalizer
+from src.model.decode import beam_search
 
 TOKEN_SPAN = "<span>"
 
 
-def fill_blank(cpm2: bminf.models.CPM2, text, kwargs: dict):
+def fill_blank(cpm2: bminf.models.CPM2, text: str, kwargs: dict):
     print("Input: ", text.replace(TOKEN_SPAN, "\033[4m____\033[0m"))
     for result in cpm2.fill_blank(text, **kwargs
                                   # top_p=1.0,
@@ -21,28 +22,28 @@ def fill_blank(cpm2: bminf.models.CPM2, text, kwargs: dict):
     print("Output:", text)
 
 
-def generate(model: bminf.models.CPM2, text, kwargs: dict):
+def generate(model: bminf.models.CPM2, text: str, kwargs: dict):
     print("Input: ", text)
-    sys.stdout.write("Output: %s" % text)
     stoped = False
     total_len = len(text)
-    while not stoped:
-        if total_len > kwargs['max_tokens']:
-            break
-        value, stoped = model.generate(
-            text, **kwargs
-            # max_tokens=32,
-            # top_n=5,
-            # top_p=None,
-            # temperature=0.85,
-            # frequency_penalty=0,
-            # presence_penalty=0,
-        )
-        text += value
-        sys.stdout.write(value)
-        total_len += len(value)
-        sys.stdout.flush()
-    sys.stdout.write("\n")
+    if kwargs['num_beams'] is not None:
+        kwargs['max_tokens'] = kwargs['max_tokens'] - total_len
+        beam_strings = beam_search(model, text, **kwargs)
+        for i, s in enumerate(beam_strings):
+            sys.stdout.write("Output{}: {}{}\n".format(i, text, s))
+    else:
+        sys.stdout.write("Output: %s" % text)
+        while not stoped:
+            if total_len > kwargs['max_tokens']:
+                break
+            value, stoped = model.generate(
+                text, **kwargs
+            )
+            text += value
+            sys.stdout.write(value)
+            total_len += len(value)
+            sys.stdout.flush()
+        sys.stdout.write("\n")
 
 
 def get_input_texts(args):

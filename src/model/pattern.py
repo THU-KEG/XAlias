@@ -7,7 +7,7 @@ patterns = {
 }
 
 
-class Verbalizer():
+class Verbalizer(object):
     def __init__(self, language, task):
         """
         :param language: en / ch
