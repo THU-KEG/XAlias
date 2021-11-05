@@ -3,7 +3,7 @@ import argparse
 BMINF_FILL_KEYS = ['top_p', 'top_n', 'temperature', 'frequency_penalty', 'presence_penalty']
 BMINF_SAMLE_KEYS = ['max_tokens', 'top_n', 'top_p', 'temperature', 'frequency_penalty',
                     'presence_penalty']
-BMINF_BEAM_KEYS = ['max_tokens',  'num_beams', 'num_return_sequences']
+BMINF_BEAM_KEYS = ['max_tokens', 'num_beams', 'num_return_sequences']
 
 
 def get_decode_param():
@@ -71,7 +71,7 @@ def reduce_args(args):
 def get_bminf_param():
     parser = argparse.ArgumentParser()
     # task params
-    parser.add_argument('--source_word', type=str, default='北京大学', choices=['北京大学', '清华大学', '江西省', '北京'])
+    parser.add_argument('--source_word', type=str, default='北京大学', choices=['北京大学', '清华大学', '北京航空航天大学', '江西省', '北京'])
     parser.add_argument('--language', type=str, default='ch', choices=['en', 'ch'])
     parser.add_argument('--task', type=str, default='generate', choices=['fill', 'generate'])
     # gpu device
@@ -86,8 +86,8 @@ def get_bminf_param():
     # generate task params
     parser.add_argument('--max_tokens', type=int, default=16)
     # beam search
-    parser.add_argument('--num_beams', type=int, default=2)
-    parser.add_argument('--num_return_sequences', type=int, default=None)
+    parser.add_argument('--num_beams', type=int, default=8)
+    parser.add_argument('--num_return_sequences', type=int, default=8)
 
     args = parser.parse_args()
     kwargs = reduce_args(args)

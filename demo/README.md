@@ -19,7 +19,7 @@ python -m demo.generate_cpm2 --task generate --max_tokens 16 --temperature 0.85 
 Beam search:
 
 ```
-python -m demo.generate_cpm2 --task generate --max_tokens 16 --num_beams 2 --num_return_sequences 2 --seed 1453
+python -m demo.generate_cpm2 --task generate --max_tokens 4 --num_beams 2 --num_return_sequences 2
 ```
 
 In Bert style:
@@ -121,6 +121,4 @@ Here are three kinds of decoding strategies for **auto-regressive** language gen
 - Sampling
   - Can random generate text. Mainly used for story/dialog generation
 
-Bminf only provide the **sampling** strategy.
-
-I will try to write a beam search API.
+There are 2 problems with the current results. See `ybb/README.md`.

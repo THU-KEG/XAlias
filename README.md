@@ -48,3 +48,22 @@ Here are some types which frequently appear in the result:
 | One to all      | bdi14804606::=万达广场::=厦门湖里万达广场<br/>bdi14805470::=万达广场::=苏州万达广场<br/>bdi14805482::=万达广场::=莆田万达广场 | YES   |
 | Punctuation     | bdi4611038::=洛奇::=《洛奇》                                 | YES   |
 
+
+
+## Beam search with CPM2
+
+Here is the result for `num_beams = 2`:
+
+![](./pic/20211105162854.png)
+
+![](./pic/20211105163136.png)
+
+For `num_beams = 8`:
+
+![](./pic/20211105163440.png)
+
+Well, maybe some results are relevant. But it is strange that :
+
+- Some template can not generate enough beams.
+- When `num_beams` get larger, the results get worse.
+

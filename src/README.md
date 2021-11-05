@@ -27,3 +27,7 @@ We will generate 3 result files under `data_dir`  which store the map between `m
 ## pattern
 
 This file contains our manual designed templates and the `Verbalizer`.
+
+## decode
+
+This is the implementation of `beam search` for `CPM2` model.

@@ -27,7 +27,7 @@ def generate(model: bminf.models.CPM2, text: str, kwargs: dict):
     stoped = False
     total_len = len(text)
     if kwargs['num_beams'] is not None:
-        kwargs['max_tokens'] = kwargs['max_tokens'] - total_len
+        # kwargs['max_tokens'] = kwargs['max_tokens'] - total_len
         beam_strings = beam_search(model, text, **kwargs)
         for i, s in enumerate(beam_strings):
             sys.stdout.write("Output{}: {}{}\n".format(i, text, s))
