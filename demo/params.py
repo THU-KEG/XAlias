@@ -1,4 +1,5 @@
 import argparse
+from src.model.pattern import few_shot_alias_table
 
 BMINF_FILL_KEYS = ['top_p', 'top_n', 'temperature', 'frequency_penalty', 'presence_penalty']
 BMINF_SAMLE_KEYS = ['max_tokens', 'top_n', 'top_p', 'temperature', 'frequency_penalty',
@@ -71,9 +72,12 @@ def reduce_args(args):
 def get_bminf_param():
     parser = argparse.ArgumentParser()
     # task params
-    parser.add_argument('--source_word', type=str, default='北京大学', choices=['北京大学', '清华大学', '北京航空航天大学', '江西省', '北京'])
+    # parser.add_argument('--source_word', type=str, default='北京大学', choices=['北京大学', '清华大学', '北京航空航天大学', '江西省', '北京'])
+    parser.add_argument('--source_word', type=str, default='北京大学')
     parser.add_argument('--language', type=str, default='ch', choices=['en', 'ch'])
     parser.add_argument('--task', type=str, default='generate', choices=['fill', 'generate'])
+    # prompt parameter
+    parser.add_argument('--prefix_type', type=str, default='void', choices=few_shot_alias_table.keys())
     # gpu device
     parser.add_argument('--gpu_id', type=int, default=0)
     # shared decode params

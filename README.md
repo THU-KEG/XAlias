@@ -67,3 +67,20 @@ Well, maybe some results are relevant. But it is strange that :
 - Some template can not generate enough beams.
 - When `num_beams` get larger, the results get worse.
 
+
+
+# 3 ways of few shot prompt
+
+## way 1 task-specific prefix
+
+without task-specific prefix prompt:
+
+![](/home/tsq/PycharmProjects/ybb/pic/20211109095702.png)
+
+with task-specific prefix prompt:
+
+![](/home/tsq/PycharmProjects/ybb/pic/20211109095622.png)
+
+with wrong task prefix prompt (Transfer from synonym to abbreviation):
+
+![](/home/tsq/PycharmProjects/ybb/pic/20211109100005.png)

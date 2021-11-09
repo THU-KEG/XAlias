@@ -5,6 +5,11 @@ patterns = {
     }
 
 }
+few_shot_alias_table = {
+    'abbreviation': {'清华大学': ['清华'], '北京理工大学': ['北理', '北理工']},
+    'synonym': {'红酒': ['葡萄酒']},
+    'void': {},
+}
 
 
 class Verbalizer(object):
@@ -16,11 +21,24 @@ class Verbalizer(object):
         self.language = language
         self.task = task
         self.patterns = patterns[language][task]
+        self.g_patterns = patterns[language]['generate']
 
-    def convert_all(self, prefix):
-        results = [self.convert(prefix, p_id) for p_id in range(len(self.patterns))]
+    def convert_all(self, prefix_type, src_word):
+        alias_table = few_shot_alias_table[prefix_type]
+        results = []
+        for p_id in range(len(self.patterns)):
+            prefix = ''
+            if prefix_type != 'void':
+                for key_word, alias_list in alias_table.items():
+                    for alias in alias_list:
+                        if self.language == 'ch':
+                            prefix += key_word + self.g_patterns[p_id] + alias + '，'
+                        else:
+                            prefix += key_word + self.g_patterns[p_id] + alias + ', '
+            sequence = self.convert(prefix, src_word, p_id)
+            results.append(sequence)
         return results
 
-    def convert(self, prefix, pattern_id=0):
+    def convert(self, prefix, src_word, pattern_id=0):
         pattern = self.patterns[pattern_id]
-        return prefix + pattern
+        return prefix + src_word + pattern

@@ -2,6 +2,8 @@
 
 # Quick start
 
+## zero shot setting
+
 To use cpm1 by huggingface:
 
 ```
@@ -26,6 +28,16 @@ In Bert style:
 
 ```
 python -m demo.generate_cpm2 --task fill --temperature 0.5 --top_n 5 --top_p 0.95 --seed 1453
+```
+
+## few shot setting
+
+**Way 1**
+
+use alias examples to form a prompt prefix. The examples should have the same alias type with the source word. However, this also **limits** the source word's type.
+
+```
+CUDA_VISIBLE_DEVICES=5 python -m demo.generate_cpm2 --task generate --max_tokens 4 --num_beams 2 --num_return_sequences 2 --source_word '北京大学' --prefix_type abbreviation
 ```
 
 

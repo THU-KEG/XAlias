@@ -48,7 +48,7 @@ def generate(model: bminf.models.CPM2, text: str, kwargs: dict):
 
 def get_input_texts(args):
     verbalizer = Verbalizer(args.language, args.task)
-    return verbalizer.convert_all(args.source_word)
+    return verbalizer.convert_all(args.prefix_type, args.source_word)
 
 
 def main():
