@@ -22,6 +22,16 @@ We will generate 3 result files under `data_dir`  which store the map between `m
 - `id2mention_multi.txt`
   - only stores the mentions with **multiple** ids.
 
+## discover_alias
+
+This script can discover the `hasAlias` relation of the words in `id2mention_multi.txt` and classify the alias type with rules, see the definition in `../README.md`. 
+
+```
+python -m src.data.discover_alias --data_dir XX --src_file mention_anchors.txt
+```
+
+We will create a pickle file `has_alias_relation_record.pkl` under `data_dir` 
+
 # model
 
 ## pattern
