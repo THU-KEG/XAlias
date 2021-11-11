@@ -32,6 +32,16 @@ python -m src.data.discover_alias --data_dir XX --src_file mention_anchors.txt
 
 We will create a pickle file `has_alias_relation_record.pkl` under `data_dir` 
 
+## statistic
+
+This script can count the statistic of our dataset, like drawing distribution picture:
+
+```
+python -m src.data.statistic --task has_alias_distribution
+```
+
+
+
 # model
 
 ## pattern

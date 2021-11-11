@@ -3,7 +3,9 @@ import os
 import json
 from tqdm import tqdm
 import pickle
+import re
 
+non_zh_reg = re.compile(u'[^\u4e00-\u9fa5]')
 punctuation = """！？｡＂＃＄％＆＇（）＊＋－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘'‛“”„‟…‧﹏"""
 
 
@@ -35,22 +37,40 @@ class HasAlias(object):
                     self.short_word = source_word
                     self.long_word = tgt_word
                 # check the type of this relation
-                if self.long_word[0] in punctuation or self.long_word[-1] in punctuation:
+                if self.long_word.startswith(self.short_word):
+                    self.type = 'suffix'
+                elif self.long_word.endswith(self.short_word):
+                    self.type = 'prefix'
+                elif self.long_word[0] in punctuation or self.long_word[-1] in punctuation:
                     self.type = 'punctuation'
+                elif self.has_non_chinese_translate(tgt_word):
+                    self.type = 'bilingual'
                 else:
-                    if self.long_word.startswith(self.short_word):
-                        self.type = 'suffix'
-                    elif self.long_word.endswith(self.short_word):
-                        self.type = 'prefix'
+                    # these 2 word might be Synonym or Abbreviation
+                    # we use heuristic rule to divide them
+                    if len(self.short_word) <= len(self.long_word) / 2:
+                        self.type = 'abbreviation'
+                    # elif self.short_word[0] != self.long_word[0] or self.short_word[-1] != self.long_word[-1]:
+                    #     self.type = 'abbreviation'
                     else:
-                        # these 2 word might be Synonym or Abbreviation
-                        # we use heuristic rule to divide them
-                        if len(self.short_word) <= len(self.long_word) / 2:
-                            self.type = 'abbreviation'
-                        # elif self.short_word[0] != self.long_word[0] or self.short_word[-1] != self.long_word[-1]:
-                        #     self.type = 'abbreviation'
-                        else:
-                            self.type = 'synonym'
+                        self.type = 'synonym'
+
+    def has_non_chinese_translate(self, tgt_word):
+        # check bilingual, the non chinese part in src and tgt word must be different
+        src_obj = non_zh_reg.search(self.src_word)
+        tgt_obj = non_zh_reg.search(tgt_word)
+        if src_obj or tgt_obj:
+            if src_obj and tgt_obj:
+                if len(src_obj.groups()) != len(tgt_obj.groups()):
+                    return True
+                for i in range(len(src_obj.groups())):
+                    if src_obj.group(i) != tgt_obj.group(i):
+                        return True
+                return False
+            else:
+                return True
+        else:
+            return False
 
 
 def read_mention2ids(src_file_path):
@@ -97,6 +117,7 @@ def get_has_alias_relation(alias_table):
         'abbreviation': [],
         'synonym': [],
         'punctuation': [],
+        'bilingual': [],
         'multiple': [],
     }
     for entity_id, alias_table in tqdm(alias_table.items(), desc='get_has_alias_relation'):

@@ -59,15 +59,16 @@ We reverse the entity linking relations and get the map between  the entity id a
 
 Here are some types which frequently appear in the result:
 
-| Type           | example                                                      | Noise |
-| -------------- | ------------------------------------------------------------ | ----- |
-| Multiple alias | bdi13132852::=纽约大学::=美国纽约大学::=new york university::=nyu | NO    |
-| Prefix alias   | bdi3680860::=移动定制手机::=中国移动定制机<br/>bdi8362196::=夏宫::=彼得大帝夏宫 | NO    |
-| Suffix alias   | bdi17597962::=永夜城::=永夜城（短篇小说）<br/>bdi4004751::=北京大北宾馆::=北京大北宾馆（大望路店） | NO    |
-| Abbreviation   | bdi18479549::=国动委::=国家国防动员委员会                    | NO    |
-| Synonym        | bdi4049370::=波尔多红酒::=波尔多葡萄酒                       | NO    |
-| One to all     | bdi14804606::=万达广场::=厦门湖里万达广场<br/>bdi14805470::=万达广场::=苏州万达广场<br/>bdi14805482::=万达广场::=莆田万达广场 | YES   |
-| Punctuation    | bdi4611038::=洛奇::=《洛奇》                                 | YES   |
+| Type           | example                                                      | Noise  |
+| -------------- | ------------------------------------------------------------ | ------ |
+| Multiple alias | bdi13132852::=纽约大学::=美国纽约大学::=new york university::=nyu | NO     |
+| Bilingual      | bdi12962206::=滨田麻里::=滨田マリ                            | NO     |
+| Prefix         | bdi3680860::=移动定制手机::=中国移动定制机<br/>bdi8362196::=夏宫::=彼得大帝夏宫 | NO     |
+| Suffix         | bdi17597962::=永夜城::=永夜城（短篇小说）<br/>bdi4004751::=北京大北宾馆::=北京大北宾馆（大望路店） | NO     |
+| Abbreviation   | bdi18479549::=国动委::=国家国防动员委员会                    | NO     |
+| Synonym        | bdi4049370::=波尔多红酒::=波尔多葡萄酒                       | NO     |
+| Punctuation    | bdi4611038::=洛奇::=《洛奇》                                 | NO     |
+| One to all     | bdi14804606::=万达广场::=厦门湖里万达广场<br/>bdi14805470::=万达广场::=苏州万达广场<br/>bdi14805482::=万达广场::=莆田万达广场 | YES/NO |
 
 ## 2.2 Definition of `hasAlias`
 
@@ -75,11 +76,15 @@ We know that a mention may be correspond to different entities, like `万达广�
 
 ![](./pic/20211110161815.png)
 
-Let $e$ $ｅ$ denote the entity, $w$ denote the word, $W_e$ denote the set of $e$'s injective alias.
+Let $e$ denote the entity, $w$ denote the word, $W_e$ denote the set of $e$'s injective alias.
 
 If $w$ only  corresponds to one entity $e$ ,  then for any word $w_i \in W_e$,   $w$  `hasAlias` $w_i$ and $w_i$  `hasAlias` $w$.  Also,  $w \in W_e$ 
 
 If  $w$  corresponds to a set of entities $E_w$,   then for the entity $e_i \in E_w$ , $e_i$ has a set of injective alias $W_{e_i}$, for all the injective alias $w_{j} \in W_{e_i}$,  $w_i$  `hasAlias` $w$.  
+
+Here is the distribution of different alias types:
+
+![](./pic/number_of_alias.png)
 
 # 3. Ways of few shot prompt
 
