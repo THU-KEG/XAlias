@@ -69,15 +69,10 @@ def reduce_args(args):
     return kwargs
 
 
-def get_bminf_param():
-    parser = argparse.ArgumentParser()
-    # task params
-    # parser.add_argument('--source_word', type=str, default='北京大学', choices=['北京大学', '清华大学', '北京航空航天大学', '江西省', '北京'])
-    parser.add_argument('--source_word', type=str, default='北京大学')
+def add_decode_param(parser: argparse.ArgumentParser):
+    # verbalize params
     parser.add_argument('--language', type=str, default='ch', choices=['en', 'ch'])
     parser.add_argument('--task', type=str, default='generate', choices=['fill', 'generate'])
-    # prompt parameter
-    parser.add_argument('--prefix_type', type=str, default='void', choices=few_shot_alias_table.keys())
     # gpu device
     parser.add_argument('--gpu_id', type=int, default=0)
     # shared decode params
@@ -90,8 +85,19 @@ def get_bminf_param():
     # generate task params
     parser.add_argument('--max_tokens', type=int, default=16)
     # beam search
-    parser.add_argument('--num_beams', type=int, default=8)
-    parser.add_argument('--num_return_sequences', type=int, default=8)
+    parser.add_argument('--num_beams', type=int, default=None)
+    parser.add_argument('--num_return_sequences', type=int, default=2)
+    return parser
+
+
+def get_bminf_param():
+    parser = argparse.ArgumentParser()
+    # task params
+    # parser.add_argument('--source_word', type=str, default='北京大学', choices=['北京大学', '清华大学', '北京航空航天大学', '江西省', '北京'])
+    parser.add_argument('--source_word', type=str, default='北京大学')
+    # prompt parameter
+    parser.add_argument('--prefix_type', type=str, default='void', choices=few_shot_alias_table.keys())
+    parser = add_decode_param(parser)
 
     args = parser.parse_args()
     kwargs = reduce_args(args)
