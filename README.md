@@ -101,3 +101,32 @@ with task-specific prefix prompt:
 with wrong task prefix prompt (Transfer from synonym to abbreviation):
 
 ![](./pic/20211109100005.png)
+
+### 3.1.1 Evaluation result
+
+**Randomly** sample  alias words and use 4 template` ['也被称为', '的别名是', '的缩写为', ',简称']` to generate 4 prompt prefix and each prefix will be feed into `cpm2` to get a predict target word.  
+
+| alias_type   | max_tokens | decode | EM 4@1  | True_contain 4@1 |
+| ------------ | ---------- | ------ | ------- | ---------------- |
+| prefix       | 2          | sample | 0.06495 | 0.6922           |
+| suffix       | 4          | sample | 0.43980 | 2.7388           |
+| abbreviation | 2          | sample | 0.02621 | 0.1890           |
+| abbreviation | 2          | beam=2 | 0.00414 | 0.0648           |
+| synonym      | 2          | beam=2 | 0.00240 | 0.0429           |
+| synonym      | 4          | sample | 0.00996 | 0.1329           |
+| punctuation  | 4          | sample | 1.65393 | 1.6539           |
+
+change `task_specific_prompt_num` and `task_definition`
+
+`task_definition` is the prefix like: `接下来进行别名生成，比如xx也叫yy`
+
+| alias_type | task_specific_prompt_num | task_definition | EM 4@1  | True_contain 4@1 |
+| ---------- | ------------------------ | --------------- | ------- | ---------------- |
+| prefix     | 4                        | false           | 0.06495 | 0.6922           |
+| prefix     | 2                        | false           | 0.05734 | 0.5840           |
+| prefix     | 1                        | false           | 0.03043 | 0.2557           |
+| prefix     | 2                        | true            | 0.05734 | 0.6080           |
+| prefix     | 4                        | true            | 0.05383 | 0.6799           |
+| prefix     | 8                        | true            | 0.05208 | 0.7297           |
+| synonym    | 8                        | true            | 0.03100 | 0.3990           |
+| synonym    | 8                        | false           | 0.04300 | 0.3890           |

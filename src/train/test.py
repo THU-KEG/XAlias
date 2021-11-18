@@ -25,7 +25,7 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
         shutil.rmtree(sum_dir)
     os.mkdir(sum_dir)
 
-    score = {'EM': [], 'Ture': []}
+    score = {'EM': [], 'True': []}
     records = []
     # with torch.no_grad():
     try:
@@ -38,9 +38,10 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
             # generate by PLM
             if args.extra_prompt == 'task_specific':
                 alias_table = data.sample_alias_table(args.task_specific_prompt_num)
-                pred_words = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, alias_table)
+                pred_words = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, args.task_definition, alias_table)
             else:
-                pred_words = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, None)
+                alias_table = None
+                pred_words = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, False, alias_table)
             golden = ' '.join(tgt_words)
             pred = ' '.join(pred_words)
 
@@ -56,24 +57,25 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
 
 
 def record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, golden, pred, batch_iter):
-    # update Ture and EM
-    num_ture = 0
-    num_exact_match = 0
+    # update True and EM
+    num_pred_words = len(pred_words)
+    nums_exact_match = [0] * num_pred_words
+    nums_ture = [0] * num_pred_words
     for tgt_word in tgt_words:
-        for pred_word in pred_words:
+        for i, pred_word in enumerate(pred_words):
             if tgt_word == pred_word:
-                num_exact_match += 1
+                nums_exact_match[i] = 1
             if tgt_word in pred_word or pred_word in tgt_word:
-                num_ture += 1
-    score['EM'].append(num_exact_match)
-    score['Ture'].append(num_ture)
+                nums_ture[i] = 1
+    score['EM'].append(nums_exact_match)
+    score['True'].append(nums_ture)
     # write
     with open(os.path.join(ref_dir, "%d_reference.txt" % batch_iter), 'w') as f:
         f.write(golden)
     with open(os.path.join(sum_dir, "%d_decoded.txt" % batch_iter), 'w') as f:
         f.write(pred)
-    record = {'iter': batch_iter, 'src_word': src_word, 'golden': golden, 'pred': pred, 'EM': num_exact_match,
-              'Ture': num_ture}
+    record = {'iter': batch_iter, 'src_word': src_word, 'golden': golden, 'pred': pred, 'EM': nums_exact_match,
+              'True': nums_ture}
     return score, record
 
 
@@ -101,9 +103,9 @@ def work(args, cpm2_kwargs):
         model = None
     print("kwargs:", cpm2_kwargs)
     if args.test:
-        data = AliasDataset(args.data_path, args.alias_type, 'test')
+        data = AliasDataset(args.data_path, args.alias_type, 'test', exp_num=args.example_num)
     else:
-        data = AliasDataset(args.data_path, args.alias_type, 'valid')
+        data = AliasDataset(args.data_path, args.alias_type, 'valid', exp_num=args.example_num)
 
     log_dir = os.path.join(args.result_dir, args.alias_type, args.learning, args.extra_prompt,
                            "time_" + time.strftime("%m%d%H%M"))
@@ -114,16 +116,24 @@ def work(args, cpm2_kwargs):
 
     scores, records = validate(data, model, device, log_dir, args, cpm2_kwargs, fast=args.fast)
 
-    with open(os.path.join(log_dir, 'records.json'), 'w') as fr:
-        fr.write(json.dumps(records, indent=4))
+    # save the result
+    with open(os.path.join(log_dir, 'records.json'), 'w', encoding='utf-8') as fr:
+        fr.write(json.dumps(records, ensure_ascii=False, indent=4))
 
-    with open(os.path.join(log_dir, 'scores.txt'), 'w') as f:
+    with open(os.path.join(log_dir, 'scores.txt'), 'w', encoding='utf-8') as f:
         for k, v in args.__dict__.items():
             f.write('%s: %s\n' % (k, str(v)))
         avg_scores = {}
-        for k, v in scores:
-            avg_scores[k] = sum(v) / len(v)
-        f.write(json.dumps(avg_scores, indent=4))
+        for k, scores in scores.items():
+            data_num = len(scores)  # scores is a list of list
+            avg_p2s = [0] * len(scores[0])  # For avg_p2s, id is pattern's order, s is score
+            for score_list in scores:
+                for i, score in enumerate(score_list):
+                    avg_p2s[i] += score
+            avg_p2s = [score / data_num for score in avg_p2s]
+            avg_scores[k] = avg_p2s
+            avg_scores[k + "_sum"] = sum(avg_p2s)
+        f.write(json.dumps(avg_scores, ensure_ascii=False, indent=4))
     # vis = vis_scores(scores)
     # print(vis)
 
@@ -131,8 +141,10 @@ def work(args, cpm2_kwargs):
 def main():
     parser = argparse.ArgumentParser()
     # parser.add_argument('--ckpt', required=True)
+    # data param
     parser.add_argument('--test', action="store_true")
     parser.add_argument('--fast', action="store_true")
+    parser.add_argument('--example_num', type=int, default=-1)
     parser.add_argument('--alias_type', default='synonym',
                         choices=['prefix', 'suffix', 'abbreviation', 'synonym', 'punctuation', 'bilingual', 'multiple'])
     parser.add_argument('--result_dir', default='/data/tsq/xlink/bd/result')
@@ -145,6 +157,7 @@ def main():
     parser.add_argument('--extra_prompt', type=str, default='task_specific',
                         choices=['task_specific', 'prefix_tuning'])
     parser.add_argument('--task_specific_prompt_num', type=int, default=4)
+    parser.add_argument('--task_definition', action="store_true")
     parser = add_decode_param(parser)
     args = parser.parse_args()
     cpm2_kwargs = reduce_args(args)

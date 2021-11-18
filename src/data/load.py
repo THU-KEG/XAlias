@@ -8,7 +8,7 @@ EOS = 3
 
 
 class AliasDataset:
-    def __init__(self, data_path, alias_type, split, shuffle=False, fraction=1):
+    def __init__(self, data_path, alias_type, split, shuffle=False, fraction=1, exp_num=-1):
         __dic = {'train': 0, 'valid': 1, 'test': 2}
         self.data_split = __dic[split]
 
@@ -18,7 +18,10 @@ class AliasDataset:
         self.alias_type = alias_type
         self.shuffle = shuffle
         self.pure_data = self.data[self.alias_type]
-        self.example_num = int(len(self.pure_data) * fraction)
+        if exp_num == -1:
+            self.example_num = int(len(self.pure_data) * fraction)
+        else:
+            self.example_num = exp_num
         self.pure_data = self.pure_data[:self.example_num]
 
     def gen_batch(self, required_index=None):

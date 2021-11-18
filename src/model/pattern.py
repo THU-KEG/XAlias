@@ -5,7 +5,16 @@ from src.model.decode import beam_search
 patterns = {
     'ch': {
         'fill': ['也被称为<span>。', '的别名是<span>。', '的缩写为<span>。', ',简称<span>。', '也作为<span>被熟知。'],
-        'generate': ['也被称为', '的别名是', '的缩写为', ',简称']
+        'generate':
+            {
+                'prefix': ['也被称为', '的别名是', '的缩写为', ',简称'],  # List of templates
+                'suffix': ['也被称为', '的别名是', '的缩写为', ',简称'],
+                'abbreviation': ['也被称为', '的别名是', '的缩写为', ',简称'],
+                'synonym': ['也被称为', '的别名是', '的同义词是', ',也称'],
+                'punctuation': ['也被称为', '的别名是', ',简称', '，简称', '简称'],
+                'bilingual': ['也被称为', '的别名是', '的译文是', ',也称'],
+                'multiple': ['也被称为', '的别名是', '的缩写为', ',也称'],
+            }
     }
 
 }
@@ -31,25 +40,30 @@ class Verbalizer(object):
         self.kwargs = None
         self.args = None
 
-    def convert_all(self, prefix_type, src_word, alias_table=None):
+    def convert_all(self, prefix_type, src_word, task_def=False, alias_table=None):
         if alias_table is None:
             alias_table = few_shot_alias_table[prefix_type]
         results = []
-        for p_id in range(len(self.patterns)):
+        for p_id in range(len(self.patterns[prefix_type])):
             prefix = ''
+            if task_def:
+                if self.language == 'ch':
+                    prefix += '接下来进行别名生成，比如'
+                else:
+                    prefix += 'Next we will generate alias. Such as'
             if prefix_type != 'void':
                 for key_word, alias_list in alias_table.items():
                     for alias in alias_list:
                         if self.language == 'ch':
-                            prefix += key_word + self.g_patterns[p_id] + alias + '，'
+                            prefix += key_word + self.g_patterns[prefix_type][p_id] + alias + '，'
                         else:
-                            prefix += key_word + self.g_patterns[p_id] + alias + ', '
-            sequence = self.convert(prefix, src_word, p_id)
+                            prefix += key_word + self.g_patterns[prefix_type][p_id] + alias + ', '
+            sequence = self.convert(prefix, prefix_type, src_word, p_id)
             results.append(sequence)
         return results
 
-    def convert(self, prefix, src_word, pattern_id=0):
-        pattern = self.patterns[pattern_id]
+    def convert(self, prefix, prefix_type, src_word, pattern_id=0):
+        pattern = self.patterns[prefix_type][pattern_id]
         return prefix + src_word + pattern
 
     def set_cpm2(self, model: bminf.models.CPM2, kwargs: dict, args: argparse.ArgumentParser):
@@ -76,8 +90,8 @@ class Verbalizer(object):
 
         return result_string
 
-    def cpm2_gen_by_prompt(self, prefix_type, src_word, alias_table=None):
-        input_texts = self.convert_all(prefix_type, src_word, alias_table)
+    def cpm2_gen_by_prompt(self, prefix_type, src_word, task_def, alias_table=None):
+        input_texts = self.convert_all(prefix_type, src_word, task_def, alias_table)
         result_strings = []
         for input_text in input_texts:
             if self.args.task == 'fill':
