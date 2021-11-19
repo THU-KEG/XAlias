@@ -43,7 +43,7 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
                 alias_table = None
                 pred_words = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, False, alias_table)
             golden = ' '.join(tgt_words)
-            pred = ' '.join(pred_words)
+            pred = ' '.join([i for arr in pred_words for i in arr])
 
             # record the result
             score, record = record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, golden, pred,
@@ -58,15 +58,17 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
 
 def record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, golden, pred, batch_iter):
     # update True and EM
-    num_pred_words = len(pred_words)
-    nums_exact_match = [0] * num_pred_words
-    nums_ture = [0] * num_pred_words
+    num_pattern = len(pred_words)
+    nums_exact_match = [0] * num_pattern
+    nums_ture = [0] * num_pattern
     for tgt_word in tgt_words:
-        for i, pred_word in enumerate(pred_words):
-            if tgt_word == pred_word:
-                nums_exact_match[i] = 1
-            if tgt_word in pred_word or pred_word in tgt_word:
-                nums_ture[i] = 1
+        for i, pred_word_list in enumerate(pred_words):
+            for pred_word in pred_word_list:
+                # each pred_word correspond to a pattern's decode result
+                if tgt_word == pred_word:
+                    nums_exact_match[i] = 1
+                if tgt_word in pred_word or pred_word in tgt_word:
+                    nums_ture[i] = 1
     score['EM'].append(nums_exact_match)
     score['True'].append(nums_ture)
     # write
@@ -74,8 +76,10 @@ def record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, gold
         f.write(golden)
     with open(os.path.join(sum_dir, "%d_decoded.txt" % batch_iter), 'w') as f:
         f.write(pred)
+    best_em = 0 if sum(nums_exact_match) == 0 else 1
+    best_true = 0 if sum(nums_ture) == 0 else 1
     record = {'iter': batch_iter, 'src_word': src_word, 'golden': golden, 'pred': pred, 'EM': nums_exact_match,
-              'True': nums_ture}
+              'True': nums_ture, 'best_EM': best_em, 'best_True': best_true}
     return score, record
 
 
@@ -133,6 +137,16 @@ def work(args, cpm2_kwargs):
             avg_p2s = [score / data_num for score in avg_p2s]
             avg_scores[k] = avg_p2s
             avg_scores[k + "_sum"] = sum(avg_p2s)
+        # record the best score
+        avg_best_em = 0
+        avg_best_true = 0
+        for record in records:
+            avg_best_em += record['best_EM']
+            avg_best_true += record['best_True']
+        avg_best_em /= len(records)
+        avg_best_true /= len(records)
+        avg_scores['best_EM'] = avg_best_em
+        avg_scores['best_True'] = avg_best_true
         f.write(json.dumps(avg_scores, ensure_ascii=False, indent=4))
     # vis = vis_scores(scores)
     # print(vis)

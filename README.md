@@ -130,3 +130,13 @@ change `task_specific_prompt_num` and `task_definition`
 | prefix     | 8                        | true            | 0.05208 | 0.7297           |
 | synonym    | 8                        | true            | 0.03100 | 0.3990           |
 | synonym    | 8                        | false           | 0.04300 | 0.3890           |
+
+In the past, one template only generate one word.
+
+Now we will generate more result for one template.
+
+| alias_type | decode  | EM 4@10 | True_contain 4@10 |
+| ---------- | ------- | ------- | ----------------- |
+| prefix     | sample  | 0.22469 | 1.74956           |
+| prefix     | beam=10 | 0       | 0.12814           |
+| prefix     | beam=16 | 0       | 0.18432           |

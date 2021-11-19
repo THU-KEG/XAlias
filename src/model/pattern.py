@@ -1,5 +1,6 @@
 import argparse
 import bminf
+import numpy as np
 from src.model.decode import beam_search
 
 patterns = {
@@ -7,7 +8,7 @@ patterns = {
         'fill': ['也被称为<span>。', '的别名是<span>。', '的缩写为<span>。', ',简称<span>。', '也作为<span>被熟知。'],
         'generate':
             {
-                'prefix': ['也被称为', '的别名是', '的缩写为', ',简称'],  # List of templates
+                'prefix': ['也被称为', '的别名是', '又名', '即', '的全名是', '简称'],  # List of templates
                 'suffix': ['也被称为', '的别名是', '的缩写为', ',简称'],
                 'abbreviation': ['也被称为', '的别名是', '的缩写为', ',简称'],
                 'synonym': ['也被称为', '的别名是', '的同义词是', ',也称'],
@@ -92,17 +93,21 @@ class Verbalizer(object):
 
     def cpm2_gen_by_prompt(self, prefix_type, src_word, task_def, alias_table=None):
         input_texts = self.convert_all(prefix_type, src_word, task_def, alias_table)
-        result_strings = []
+        pattern2strings = []
         for input_text in input_texts:
             if self.args.task == 'fill':
                 # fill_blank(model, input_text, kwargs)
                 return None
             else:
+                strings = []
                 if 'num_beams' in self.kwargs.keys():
                     # beam search
-                    result_strings.extend(self.cpm2_beam_search(input_text))
+                    strings = self.cpm2_beam_search(input_text)
                 else:
                     # sample
-                    result_strings.append(self.cpm2_sample(input_text))
+                    for i in range(self.args.num_return_sequences):
+                        np.random.seed(i * self.args.seed)
+                        strings.append(self.cpm2_sample(input_text))
+                pattern2strings.append(strings)
 
-        return result_strings
+        return pattern2strings
