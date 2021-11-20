@@ -84,6 +84,11 @@ def add_decode_param(parser: argparse.ArgumentParser):
     parser.add_argument('--presence_penalty', type=float, default=0)
     # generate task params
     parser.add_argument('--max_tokens', type=int, default=16)
+    parser.add_argument('--max_tokens_scale', type=float, default=None,
+                        help='the mt will be mts * len(sw) or len(sw) / mts')
+    # sample
+    parser.add_argument('--top_n_range', type=int, default=None,
+                        help='the top_n will be [top_n-top_n_range, top_n+top_n_range]')
     # beam search
     parser.add_argument('--num_beams', type=int, default=None)
     parser.add_argument('--num_return_sequences', type=int, default=2)

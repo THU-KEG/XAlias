@@ -60,26 +60,26 @@ def record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, gold
     # update True and EM
     num_pattern = len(pred_words)
     nums_exact_match = [0] * num_pattern
-    nums_ture = [0] * num_pattern
+    nums_true = [0] * num_pattern
     for tgt_word in tgt_words:
         for i, pred_word_list in enumerate(pred_words):
             for pred_word in pred_word_list:
                 # each pred_word correspond to a pattern's decode result
                 if tgt_word == pred_word:
                     nums_exact_match[i] = 1
-                if tgt_word in pred_word or pred_word in tgt_word:
-                    nums_ture[i] = 1
+                if tgt_word in pred_word:
+                    nums_true[i] = 1
     score['EM'].append(nums_exact_match)
-    score['True'].append(nums_ture)
+    score['True'].append(nums_true)
     # write
     with open(os.path.join(ref_dir, "%d_reference.txt" % batch_iter), 'w') as f:
         f.write(golden)
     with open(os.path.join(sum_dir, "%d_decoded.txt" % batch_iter), 'w') as f:
         f.write(pred)
     best_em = 0 if sum(nums_exact_match) == 0 else 1
-    best_true = 0 if sum(nums_ture) == 0 else 1
-    record = {'iter': batch_iter, 'src_word': src_word, 'golden': golden, 'pred': pred, 'EM': nums_exact_match,
-              'True': nums_ture, 'best_EM': best_em, 'best_True': best_true}
+    best_true = 0 if sum(nums_true) == 0 else 1
+    record = {'iter': batch_iter, 'src_word': src_word, 'golden': golden, 'pred': pred_words, 'EM': nums_exact_match,
+              'True': nums_true, 'best_EM': best_em, 'best_True': best_true}
     return score, record
 
 

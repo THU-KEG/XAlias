@@ -11,7 +11,8 @@ patterns = {
                 'prefix': ['也被称为', '的别名是', '又名', '即', '的全名是', '简称'],  # List of templates
                 'suffix': ['也被称为', '的别名是', '的缩写为', ',简称'],
                 'abbreviation': ['也被称为', '的别名是', '的缩写为', ',简称'],
-                'synonym': ['也被称为', '的别名是', '的同义词是', ',也称'],
+                # 'synonym': ['也被称为', '的别名是', '的同义词是', ',也称'],
+                'synonym': ['也被称为', '的别名是', '的同义词是', '，也称', '，又叫', '，即'],
                 'punctuation': ['也被称为', '的别名是', ',简称', '，简称', '简称'],
                 'bilingual': ['也被称为', '的别名是', '的译文是', ',也称'],
                 'multiple': ['也被称为', '的别名是', '的缩写为', ',也称'],
@@ -24,6 +25,8 @@ few_shot_alias_table = {
     'synonym': {'红酒': ['葡萄酒']},
     'void': {},
 }
+
+signal_arg_keys = ['max_tokens_scale', 'top_n_range']
 
 
 class Verbalizer(object):
@@ -40,6 +43,7 @@ class Verbalizer(object):
         self.model = None
         self.kwargs = None
         self.args = None
+        self.signal_args = {}
 
     def convert_all(self, prefix_type, src_word, task_def=False, alias_table=None):
         if alias_table is None:
@@ -71,6 +75,10 @@ class Verbalizer(object):
         self.model = model
         self.kwargs = kwargs
         self.args = args
+        for k in signal_arg_keys:
+            v = args.__dict__[k]
+            if v is not None:
+                self.signal_args[k] = v
 
     def cpm2_beam_search(self, text):
         result_strings = beam_search(self.model, text, **self.kwargs)
@@ -104,10 +112,30 @@ class Verbalizer(object):
                     # beam search
                     strings = self.cpm2_beam_search(input_text)
                 else:
-                    # sample
-                    for i in range(self.args.num_return_sequences):
+                    # sample with different params
+                    for i in range(self.args.num_return_sequences // len(self.signal_args) + 1):
+                        if len(strings) >= self.args.num_return_sequences:
+                            break
                         np.random.seed(i * self.args.seed)
-                        strings.append(self.cpm2_sample(input_text))
+                        if len(self.signal_args) > 0:
+                            # change args
+                            for signal_arg in self.signal_args:
+                                if signal_arg == 'max_tokens_scale':
+                                    l_sw = len(src_word)
+                                    if i % 3 == 0:
+                                        self.kwargs['max_tokens'] = int(l_sw * self.signal_args['max_tokens_scale'])
+                                    elif i % 3 == 1:
+                                        self.kwargs['max_tokens'] = l_sw
+                                    else:
+                                        self.kwargs['max_tokens'] = int(l_sw / self.signal_args['max_tokens_scale'])
+                                elif signal_arg == 'top_n_range':
+                                    tnr_order = i % (2 * self.signal_args['top_n_range'])
+                                    self.kwargs['top_n'] = self.args.top_n - self.signal_args['top_n_range'] + tnr_order
+                                # generate with new kwargs
+                                strings.append(self.cpm2_sample(input_text))
+                        else:
+                            # only change seed
+                            strings.append(self.cpm2_sample(input_text))
                 pattern2strings.append(strings)
 
         return pattern2strings

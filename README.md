@@ -135,8 +135,38 @@ In the past, one template only generate one word.
 
 Now we will generate more result for one template.
 
-| alias_type | decode  | EM 4@10 | True_contain 4@10 |
+| alias_type | decode  | EM 6@10 | True_contain 6@10 |
 | ---------- | ------- | ------- | ----------------- |
 | prefix     | sample  | 0.22469 | 1.74956           |
 | prefix     | beam=10 | 0       | 0.12814           |
 | prefix     | beam=16 | 0       | 0.18432           |
+
+@50
+
+| alias_type   | decode | n    | EM 4@n | True_contain 4@n |
+| ------------ | ------ | ---- | ------ | ---------------- |
+| synonym      | sample | 10   | 0.145  | 0.21             |
+| synonym      | sample | 50   | 0.27   | 0.35             |
+| abbreviation | sample | 50   | 0.195  | 0.5              |
+
+pattern number
+
+| alias_type | decode | pattern_num | EM pn@10 | True_contain pn@10 |
+| ---------- | ------ | ----------- | -------- | ------------------ |
+| synonym    | sample | 4           | 0.145    | 0.21               |
+| synonym    | sample | 6           | 0.24     | 0.345              |
+
+Now, we find that the pattern number may help more, we will create more template and try again. Because the `EM pn@n `is not a good measurement due to its bias with right results' number. We will use `best_EM` (means that the results have at lease one Exact Match) which has a max value 1 with each input.
+
+| alias_type | pattern_num | n    | top_n_range | max_tokens_scale | best_EM | best_True |
+| ---------- | ----------- | ---- | ----------- | ---------------- | ------- | --------- |
+| synonym    | 4           | 10   | None        | None             | 0.065   | 0.095     |
+| synonym    | 4           | 50   | None        | None             | 0.09    | 0.115     |
+| synonym    | 6           | 10   | None        | None             | 0.07    | 0.1       |
+| synonym    | 6           | 20   | 2           | 2                | 0.085   | 0.255     |
+| synonym    | 6           | 20   | 2           | 1.5              | 0.05    | 0.28      |
+| synonym    | 6           | 20   | 1           | 1.5              | 0.04    | 0.26      |
+| synonym    | 6           | 20   | 1           | 2                | 0.07    | 0.275     |
+
+
+
