@@ -82,6 +82,11 @@ def add_decode_param(parser: argparse.ArgumentParser):
     parser.add_argument('--temperature', type=float, default=0.85)
     parser.add_argument('--frequency_penalty', type=float, default=0)
     parser.add_argument('--presence_penalty', type=float, default=0)
+    # how to process the generated strings
+    parser.add_argument('--redundancy_strategy', type=str, default=None, choices=[None, 'overlap'])
+    parser.add_argument('--max_overlap_scale', type=float, default=1,
+                        help="str whose len(overlap with prev_str) * mos >= len(str) will be removed")
+    parser.add_argument('--punctuation_strategy', type=str, default=None, choices=[None, 'lazy', 'all'])
     # generate task params
     parser.add_argument('--max_tokens', type=int, default=16)
     parser.add_argument('--max_tokens_scale', type=float, default=None,
@@ -92,6 +97,7 @@ def add_decode_param(parser: argparse.ArgumentParser):
     # beam search
     parser.add_argument('--num_beams', type=int, default=None)
     parser.add_argument('--num_return_sequences', type=int, default=2)
+    parser.add_argument('--num_generate_sequences', type=int, default=2)
     return parser
 
 

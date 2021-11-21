@@ -2,6 +2,7 @@ import argparse
 import bminf
 import numpy as np
 from src.model.decode import beam_search
+from difflib import SequenceMatcher
 
 patterns = {
     'ch': {
@@ -27,6 +28,24 @@ few_shot_alias_table = {
 }
 
 signal_arg_keys = ['max_tokens_scale', 'top_n_range']
+
+
+def strip_redundant_words(words, max_overlap_scale: float):
+    chosen_words = []
+    for word in words:
+        flag = False
+        for prev_word in chosen_words:
+            s = SequenceMatcher(None, word, prev_word)
+            overlap = s.find_longest_match(0, len(word), 0, len(prev_word)).size
+
+            if overlap * max_overlap_scale >= min(len(word), len(prev_word)):
+                flag = True
+                break
+
+        if not flag:
+            chosen_words.append(word)
+
+    return chosen_words
 
 
 class Verbalizer(object):
@@ -113,8 +132,8 @@ class Verbalizer(object):
                     strings = self.cpm2_beam_search(input_text)
                 else:
                     # sample with different params
-                    for i in range(self.args.num_return_sequences // len(self.signal_args) + 1):
-                        if len(strings) >= self.args.num_return_sequences:
+                    for i in range(self.args.num_generate_sequences // len(self.signal_args) + 1):
+                        if len(strings) >= self.args.num_generate_sequences:
                             break
                         np.random.seed(i * self.args.seed)
                         if len(self.signal_args) > 0:
@@ -136,6 +155,36 @@ class Verbalizer(object):
                         else:
                             # only change seed
                             strings.append(self.cpm2_sample(input_text))
-                pattern2strings.append(strings)
+                processed_strings = self.process(strings)
+                pattern2strings.append(processed_strings[:self.args.num_return_sequences])
 
         return pattern2strings
+
+    def process(self, strings):
+        # default strategy is None
+        if self.args.punctuation_strategy:
+            strings = self.rm_punctuation(strings)
+        elif self.args.redundancy_strategy:
+            strings = self.rm_redundancy(strings)
+        return strings
+
+    def rm_punctuation(self, strings):
+        tidy_strings = []
+        stopped_chars = "！？，｡、＂＇（）：；\n"
+        if self.args.punctuation_strategy == 'lazy':
+            # only split the ，
+            separated_chars = '，。\n'
+        else:
+            separated_chars = stopped_chars
+        for string in strings:
+            striped = string.strip(stopped_chars)
+            for separated_char in separated_chars:
+                sp_words = striped.split(separated_char)
+                tidy_strings.extend(sp_words)
+        return tidy_strings
+
+    def rm_redundancy(self, strings):
+        tidy_strings = []
+        if self.args.redundancy_strategy == 'overlap':
+            tidy_strings = strip_redundant_words(strings, self.args.max_overlap_scale)
+        return tidy_strings

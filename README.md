@@ -167,6 +167,18 @@ Now, we find that the pattern number may help more, we will create more template
 | synonym    | 6           | 20   | 2           | 1.5              | 0.05    | 0.28      |
 | synonym    | 6           | 20   | 1           | 1.5              | 0.04    | 0.26      |
 | synonym    | 6           | 20   | 1           | 2                | 0.07    | 0.275     |
+| synonym    | 6           | 50   | 2           | 2                |         |           |
+| synonym    | 6           | 50   | 4           | 2                |         |           |
+| synonym    | 6           | 20   | 2           | 3                |         |           |
+| synonym    | 6           | 20   | 4           | 3                |         |           |
 
+add redundancy & punctuation strategy
 
+(default: top_n_range=2 max_tokens_scale=2 pattern_num=6)
 
+| alias_type | n             | redundancy          | punctuation | best_EM | best_True |
+| ---------- | ------------- | ------------------- | ----------- | ------- | --------- |
+| synonym    | 20            | None                | None        | 0.085   | 0.255     |
+| synonym    | 40(return 20) | max_overlap_scale=1 | None        |         |           |
+| synonym    | 20            | max_overlap_scale=1 | lazy        |         |           |
+| synonym    | 20            | max_overlap_scale=1 | all         |         |           |
