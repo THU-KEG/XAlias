@@ -31,19 +31,23 @@ signal_arg_keys = ['max_tokens_scale', 'top_n_range']
 
 
 def strip_redundant_words(words, max_overlap_scale: float):
-    chosen_words = []
-    for word in words:
-        flag = False
-        for prev_word in chosen_words:
-            s = SequenceMatcher(None, word, prev_word)
-            overlap = s.find_longest_match(0, len(word), 0, len(prev_word)).size
+    if max_overlap_scale == 1:
+        # print("[2]max_overlap_scale is 1")
+        chosen_words = list(set(words))
+    else:
+        chosen_words = []
+        for word in words:
+            flag = False
+            for prev_word in chosen_words:
+                s = SequenceMatcher(None, word, prev_word)
+                overlap = s.find_longest_match(0, len(word), 0, len(prev_word)).size
 
-            if overlap * max_overlap_scale >= min(len(word), len(prev_word)):
-                flag = True
-                break
+                if overlap * max_overlap_scale >= min(len(word), len(prev_word)):
+                    flag = True
+                    break
 
-        if not flag:
-            chosen_words.append(word)
+            if not flag:
+                chosen_words.append(word)
 
     return chosen_words
 
@@ -162,25 +166,31 @@ class Verbalizer(object):
 
     def process(self, strings):
         # default strategy is None
+        # print("[0] enter process", strings)
         if self.args.punctuation_strategy:
             strings = self.rm_punctuation(strings)
-        elif self.args.redundancy_strategy:
+        if self.args.redundancy_strategy:
+            # print("[1] Before rm_redundancy", strings)
             strings = self.rm_redundancy(strings)
+            # print("[3] After rm_redundancy", strings)
+        # print("[4] out process", strings)
         return strings
 
     def rm_punctuation(self, strings):
         tidy_strings = []
         stopped_chars = "！？，｡、＂＇（）：；\n"
         if self.args.punctuation_strategy == 'lazy':
-            # only split the ，
+            # only split the ， 。 \n
             separated_chars = '，。\n'
         else:
             separated_chars = stopped_chars
         for string in strings:
             striped = string.strip(stopped_chars)
+            tidy_strings.append(striped)
             for separated_char in separated_chars:
-                sp_words = striped.split(separated_char)
-                tidy_strings.extend(sp_words)
+                if separated_char in striped:
+                    sp_words = striped.split(separated_char)
+                    tidy_strings.extend(sp_words)
         return tidy_strings
 
     def rm_redundancy(self, strings):

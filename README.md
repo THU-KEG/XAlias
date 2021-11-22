@@ -167,18 +167,122 @@ Now, we find that the pattern number may help more, we will create more template
 | synonym    | 6           | 20   | 2           | 1.5              | 0.05    | 0.28      |
 | synonym    | 6           | 20   | 1           | 1.5              | 0.04    | 0.26      |
 | synonym    | 6           | 20   | 1           | 2                | 0.07    | 0.275     |
-| synonym    | 6           | 50   | 2           | 2                |         |           |
-| synonym    | 6           | 50   | 4           | 2                |         |           |
-| synonym    | 6           | 20   | 2           | 3                |         |           |
-| synonym    | 6           | 20   | 4           | 3                |         |           |
+| synonym    | 6           | 50   | 2           | 2                | 0.11    | 0.33      |
+| synonym    | 6           | 50   | 4           | 2                | 0.115   | 0.325     |
 
 add redundancy & punctuation strategy
 
 (default: top_n_range=2 max_tokens_scale=2 pattern_num=6)
 
+| alias_type | n             | punctuation | best_EM | best_True |
+| ---------- | ------------- | ----------- | ------- | --------- |
+| synonym    | 20            | None        | 0.085   | 0.255     |
+| synonym    | 40(return 20) | None        | 0.035   | 0.305     |
+| synonym    | 20            | lazy        | 0.175   | 0.195     |
+| synonym    | 20            | all         | 0.125   | 0.155     |
+
+using `set` to remove redundancy and check the separated_char in the striped string:
+
+(default: top_n_range=4 max_tokens_scale=2 pattern_num=6)
+
 | alias_type | n             | redundancy          | punctuation | best_EM | best_True |
 | ---------- | ------------- | ------------------- | ----------- | ------- | --------- |
 | synonym    | 20            | None                | None        | 0.085   | 0.255     |
-| synonym    | 40(return 20) | max_overlap_scale=1 | None        |         |           |
+| synonym    | 40(return 20) | None                | None        | 0.075   | 0.29      |
+| synonym    | 40(return 20) | None                | lazy        | 0.16    | 0.205     |
+| synonym    | 20            | None                | lazy        | 0.185   | 0.215     |
+| synonym    | 20            | None                | all         | 0.18    | 0.22      |
 | synonym    | 20            | max_overlap_scale=1 | lazy        |         |           |
 | synonym    | 20            | max_overlap_scale=1 | all         |         |           |
+| synonym    | 40(return 20) | max_overlap_scale=2 | lazy        | 0.03    | 0.275     |
+| synonym    | 40(return 20) | max_overlap_scale=1 | lazy        | 0.16    | 0.26      |
+
+### 3.1.2 Case study
+
+- The correlation between sampled alias_table and generated tgt_word is very high, for example:
+
+  - ``` json
+       {
+            "iter": 60,
+          		"src_word": "吴子兵法",
+            "golden": "吴起兵法",
+            "pred": [
+                    "吴子兵",
+                    "华农兄弟",
+                    "吴子兵，华农兄弟",
+                    "吴子兵",
+                    "吴子兵的中国音乐",
+                    "中国乐坛",
+                    "中国",
+                    "吴子兵，吴子兵的中国音乐，中国乐坛，中国",
+                    "王宝合的同义",
+                    "吴亦凡，王宝合的同义",
+                    "吴亦凡的“吴子兵”",
+                ],
+            "alias_table": {
+                "王宝合": [
+                    "鬼手"
+                ],
+                "华语歌坛": [
+                    "华语乐坛"
+                ],
+                "反坦克枪": [
+                    "反坦克步枪"
+                ],
+                "光子": [
+                    "光量子"
+                ]
+          		 }
+          	}
+    ```
+
+    - Although "华语歌坛" -> ''华语乐坛'  provide an example of synonym, it is not in the same domain  with "吴子兵法". So it brings some strange semantic which puzzles the Language Model.
+
+  - **Possible Solution**: Maybe we should find the example alias with **similar semantic** that our `src_word `has.
+
+    - We may not randomly sample examples but provide a small example database with words from different domains. 
+    - As for how to create the database, I think **k-means clustering** may be reasonable. We can use the word in the cluster center to represent the cluster.
+    - We can calculate the semantic similarity between the input `src_word ` and the words in the database to find out the most similar examples. Then we use these examples as prompt.
+
+- **Chinese Name Generation** is very hard, for example:  
+
+  - ```json
+     {
+            "iter": 10,
+            "src_word": "郑光祖",
+            "golden": "郑德辉",
+            "pred": [
+                [
+                    "郑光祖",
+                    "王一郑光祖",
+                    "郑光",
+                    "郑光祖，王一郑光祖，郑光",
+                    "郑光祖。这个郑光祖",
+                    "郑光祖",
+                    "这个郑光祖，郑光",
+                    "郑光祖。这个郑光祖，郑光",
+                    "郑光祖郑光祖",
+                    "郑郑"
+                ]
+            ]
+    }
+    ```
+
+    - In fact, we check the `Baidu Baike` and find that :
+
+      - 郑光祖（1264年—？） ，字德辉，汉族，[平阳](https://baike.baidu.com/item/平阳/3819506)[襄陵](https://baike.baidu.com/item/襄陵/6852152)（今山西[临汾市](https://baike.baidu.com/item/临汾市/529505)[襄汾县](https://baike.baidu.com/item/襄汾县/490791)）人，元代著名[杂剧](https://baike.baidu.com/item/杂剧/827051)家、[散曲](https://baike.baidu.com/item/散曲/295113)家。
+
+    - In Info box:
+
+      - 中文名
+
+        郑光祖
+
+        别  名
+
+        郑德辉
+
+    - So, if we want to overcome the alias type like someone's `字`  . We should provide the prompt pattern like `src_name ，字 ` and the generated word should be concatenated  with the `src_name`'s last name.
+
+- 
+
