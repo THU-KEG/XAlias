@@ -38,8 +38,11 @@ class AliasDataset:
 
         raise StopIteration
 
-    def sample(self, num):
-        examples = random.sample(self.pure_data, num)
+    def sample(self, num, reverse=False):
+        if reverse:
+            examples = self.pure_data[-num:]
+        else:
+            examples = random.sample(self.pure_data, num)
         pairs = []
         for pure_data in examples:
             if len(pairs) >= num:
@@ -63,9 +66,17 @@ class AliasDataset:
             alias_num += len(tgt_words)
         return alias_table
 
+    def get_alias_example_table(self, src_word, args):
+        if args.alias_example_strategy == 'cluster':
+            alias_table = self.sample_alias_table(src_word)
+        else:
+            # randomly sample examples
+            alias_table = self.sample_alias_table(args.task_specific_prompt_num)
+        return alias_table
+
 
 if __name__ == "__main__":
     t = AliasDataset('/data/tsq/xlink/bd/has_alias_relation_record.pkl', 'synonym', 'test')
 
-    for _src_word, _tgt_word in t.sample(10):
+    for _src_word, _tgt_word in t.sample(100, reverse=True):
         print(_src_word, _tgt_word)

@@ -185,17 +185,20 @@ using `set` to remove redundancy and check the separated_char in the striped str
 
 (default: top_n_range=4 max_tokens_scale=2 pattern_num=6)
 
-| alias_type | n             | redundancy          | punctuation | best_EM | best_True |
-| ---------- | ------------- | ------------------- | ----------- | ------- | --------- |
-| synonym    | 20            | None                | None        | 0.085   | 0.255     |
-| synonym    | 40(return 20) | None                | None        | 0.075   | 0.29      |
-| synonym    | 40(return 20) | None                | lazy        | 0.16    | 0.205     |
-| synonym    | 20            | None                | lazy        | 0.185   | 0.215     |
-| synonym    | 20            | None                | all         | 0.18    | 0.22      |
-| synonym    | 20            | max_overlap_scale=1 | lazy        |         |           |
-| synonym    | 20            | max_overlap_scale=1 | all         |         |           |
-| synonym    | 40(return 20) | max_overlap_scale=2 | lazy        | 0.03    | 0.275     |
-| synonym    | 40(return 20) | max_overlap_scale=1 | lazy        | 0.16    | 0.26      |
+| alias_type   | n                          | redundancy          | punctuation | best_EM | best_True |
+| ------------ | -------------------------- | ------------------- | ----------- | ------- | --------- |
+| synonym      | 20                         | None                | None        | 0.085   | 0.255     |
+| synonym      | 40(return 20)              | None                | None        | 0.075   | 0.29      |
+| synonym      | 40(return 20)              | None                | lazy        | 0.16    | 0.205     |
+| synonym      | 20                         | None                | lazy        | 0.185   | 0.215     |
+| synonym      | 20                         | None                | all         | 0.18    | 0.22      |
+| synonym      | 20                         | max_overlap_scale=1 | lazy        | 0.195   | 0.255     |
+| synonym      | 20(return all)<br/>avg: 27 | max_overlap_scale=1 | lazy        | 0.26    | 0.285     |
+| synonym      | 20                         | max_overlap_scale=1 | all         | 0.195   | 0.23      |
+| synonym      | 40(return 20)              | max_overlap_scale=2 | lazy        | 0.03    | 0.275     |
+| synonym      | 40(return 20)              | max_overlap_scale=1 | lazy        | 0.16    | 0.26      |
+| synonym      | 50(return all)<br/>avg:    | max_overlap_scale=1 | lazy        |         |           |
+| abbreviation | 50(return all)<br/>avg:    | max_overlap_scale=1 | lazy        | 0.26    | 0.325     |
 
 ### 3.1.2 Case study
 

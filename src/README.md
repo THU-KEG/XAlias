@@ -40,6 +40,12 @@ This script can count the statistic of our dataset, like drawing distribution pi
 python -m src.data.statistic --task has_alias_distribution
 ```
 
+It can also calculate the true average `num_return_sequences` of our experiment:
+
+```
+python -m src.data.statistic --task num_return_sequences --at_result_dir xx
+```
+
 
 
 # model

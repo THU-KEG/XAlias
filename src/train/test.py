@@ -37,7 +37,7 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
             src_word, tgt_words = batch
             # generate by PLM
             if args.extra_prompt == 'task_specific':
-                alias_table = data.sample_alias_table(args.task_specific_prompt_num)
+                alias_table = data.get_alias_example_table(src_word, args)
                 pred_words = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, args.task_definition, alias_table)
             else:
                 alias_table = None
@@ -172,6 +172,8 @@ def main():
                         choices=['task_specific', 'prefix_tuning'])
     parser.add_argument('--task_specific_prompt_num', type=int, default=4)
     parser.add_argument('--task_definition', action="store_true")
+    parser.add_argument('--alias_example_strategy', type=str, default='random',
+                        choices=['random', 'cluster'])
     parser = add_decode_param(parser)
     args = parser.parse_args()
     cpm2_kwargs = reduce_args(args)
