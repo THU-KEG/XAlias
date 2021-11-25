@@ -46,6 +46,14 @@ It can also calculate the true average `num_return_sequences` of our experiment:
 python -m src.data.statistic --task num_return_sequences --at_result_dir xx
 ```
 
+## purify
+
+We can filter some data by checking if they contain none chinese / english character.
+
+```
+python -m src.data.purify --task filter_english
+```
+
 
 
 # model

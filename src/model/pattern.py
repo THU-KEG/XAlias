@@ -3,29 +3,7 @@ import bminf
 import numpy as np
 from src.model.decode import beam_search
 from difflib import SequenceMatcher
-
-patterns = {
-    'ch': {
-        'fill': ['也被称为<span>。', '的别名是<span>。', '的缩写为<span>。', ',简称<span>。', '也作为<span>被熟知。'],
-        'generate':
-            {
-                'prefix': ['也被称为', '的别名是', '又名', '即', '的全名是', '简称'],  # List of templates
-                'suffix': ['也被称为', '的别名是', '的缩写为', ',简称'],
-                'abbreviation': ['也被称为', '的别名是', '的缩写为', ',简称'],
-                # 'synonym': ['也被称为', '的别名是', '的同义词是', ',也称'],
-                'synonym': ['也被称为', '的别名是', '的同义词是', '，也称', '，又叫', '，即'],
-                'punctuation': ['也被称为', '的别名是', ',简称', '，简称', '简称'],
-                'bilingual': ['也被称为', '的别名是', '的译文是', ',也称'],
-                'multiple': ['也被称为', '的别名是', '的缩写为', ',也称'],
-            }
-    }
-
-}
-few_shot_alias_table = {
-    'abbreviation': {'清华大学': ['清华'], '北京理工大学': ['北理', '北理工']},
-    'synonym': {'红酒': ['葡萄酒']},
-    'void': {},
-}
+from src.model.const import patterns, few_shot_alias_table
 
 signal_arg_keys = ['max_tokens_scale', 'top_n_range']
 

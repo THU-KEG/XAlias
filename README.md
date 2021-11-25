@@ -84,7 +84,7 @@ If  $w$  corresponds to a set of entities $E_w$,   then for the entity $e_i \in 
 
 Here is the distribution of different alias types:
 
-![](./pic/number_of_alias.png)
+![](./pic/number_of_alias_filter_english.png)
 
 # 3. Ways of few shot prompt
 
@@ -185,20 +185,30 @@ using `set` to remove redundancy and check the separated_char in the striped str
 
 (default: top_n_range=4 max_tokens_scale=2 pattern_num=6)
 
-| alias_type   | n                          | redundancy          | punctuation | best_EM | best_True |
-| ------------ | -------------------------- | ------------------- | ----------- | ------- | --------- |
-| synonym      | 20                         | None                | None        | 0.085   | 0.255     |
-| synonym      | 40(return 20)              | None                | None        | 0.075   | 0.29      |
-| synonym      | 40(return 20)              | None                | lazy        | 0.16    | 0.205     |
-| synonym      | 20                         | None                | lazy        | 0.185   | 0.215     |
-| synonym      | 20                         | None                | all         | 0.18    | 0.22      |
-| synonym      | 20                         | max_overlap_scale=1 | lazy        | 0.195   | 0.255     |
-| synonym      | 20(return all)<br/>avg: 27 | max_overlap_scale=1 | lazy        | 0.26    | 0.285     |
-| synonym      | 20                         | max_overlap_scale=1 | all         | 0.195   | 0.23      |
-| synonym      | 40(return 20)              | max_overlap_scale=2 | lazy        | 0.03    | 0.275     |
-| synonym      | 40(return 20)              | max_overlap_scale=1 | lazy        | 0.16    | 0.26      |
-| synonym      | 50(return all)<br/>avg:    | max_overlap_scale=1 | lazy        |         |           |
-| abbreviation | 50(return all)<br/>avg:    | max_overlap_scale=1 | lazy        | 0.26    | 0.325     |
+| alias_type | n                          | redundancy          | punctuation | best_EM | best_True |
+| ---------- | -------------------------- | ------------------- | ----------- | ------- | --------- |
+| synonym    | 20                         | None                | None        | 0.085   | 0.255     |
+| synonym    | 40(return 20)              | None                | None        | 0.075   | 0.29      |
+| synonym    | 40(return 20)              | None                | lazy        | 0.16    | 0.205     |
+| synonym    | 20                         | None                | lazy        | 0.185   | 0.215     |
+| synonym    | 20                         | None                | all         | 0.18    | 0.22      |
+| synonym    | 20                         | max_overlap_scale=1 | lazy        | 0.195   | 0.255     |
+| synonym    | 20(return all)<br/>avg: 27 | max_overlap_scale=1 | lazy        | 0.26    | 0.285     |
+| synonym    | 20                         | max_overlap_scale=1 | all         | 0.195   | 0.23      |
+| synonym    | 40(return 20)              | max_overlap_scale=2 | lazy        | 0.03    | 0.275     |
+| synonym    | 40(return 20)              | max_overlap_scale=1 | lazy        | 0.16    | 0.26      |
+
+Different alias type domain:
+
+(default: top_n_range=4 max_tokens_scale=2 pattern_num=6 num_return_sequences all num_generate_sequences=50 max_overlap_scale=1 punctuation_strategy=lazy example_num=2000)
+
+| alias_type   | pattern_num | avg_num_generate_sequences | best_EM | best_True |
+| ------------ | ----------- | -------------------------- | ------- | --------- |
+| synonym      | 6           | 62.49666666666667          | 0.31    | 0.33      |
+| abbreviation | 4           | 74.1275                    | 0.26    | 0.325     |
+| prefix       | 6           | 61.9475                    | 0.595   | 0.725     |
+| suffix       | 4           | 63.8425                    | 0.855   | 0.875     |
+| punctuation  | 5           | 50.876                     | 0.765   | 0.835     |
 
 ### 3.1.2 Case study
 

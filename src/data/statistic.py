@@ -11,7 +11,7 @@ from src.data.discover_alias import HasAlias
 def work():
     parser = argparse.ArgumentParser()
     # path params
-    parser.add_argument('--data_dir', type=str, default='/data/tsq/xlink/bd')
+    parser.add_argument('--data_dir', type=str, default='/data/tsq/xlink/bd/')
     parser.add_argument('--at_result_dir', type=str,
                         default='/data/tsq/xlink/bd/result/synonym/few_shot/task_specific/time_11222133')
     parser.add_argument('--pic_dir', type=str, default='/home/tsq/ybb/pic')

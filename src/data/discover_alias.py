@@ -6,6 +6,7 @@ import pickle
 import re
 
 non_zh_reg = re.compile(u'[^\u4e00-\u9fa5]')
+en_reg = re.compile(u'[a-zA-Z]')
 punctuation = """！？｡＂＃＄％＆＇（）＊＋－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘'‛“”„‟…‧﹏"""
 
 
@@ -71,6 +72,20 @@ class HasAlias(object):
                 return True
         else:
             return False
+
+    def contain_stop_ch(self, task):
+        if task == 'filter_non_chinese':
+            reg = non_zh_reg
+        else:
+            reg = en_reg
+        src_obj = reg.search(self.src_word)
+        if src_obj:
+            return True
+        else:
+            for tgt_word in self.tgt_words:
+                tgt_obj = reg.search(tgt_word)
+                if tgt_obj:
+                    return True
 
 
 def read_mention2ids(src_file_path):
