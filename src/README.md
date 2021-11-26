@@ -51,7 +51,7 @@ python -m src.data.statistic --task num_return_sequences --at_result_dir xx
 We can filter some data by checking if they contain none chinese / english character.
 
 ```
-python -m src.data.purify --task filter_english
+python -m src.data.purify --task filter_english --stop_words pool
 ```
 
 

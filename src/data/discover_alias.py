@@ -74,6 +74,14 @@ class HasAlias(object):
             return False
 
     def contain_stop_ch(self, task):
+        # check noise like 连锁除外 [连锁除外
+        if self.src_word.startswith('['):
+            return True
+        else:
+            for tgt_word in self.tgt_words:
+                if tgt_word.startswith('['):
+                    return True
+        # regular expression
         if task == 'filter_non_chinese':
             reg = non_zh_reg
         else:
