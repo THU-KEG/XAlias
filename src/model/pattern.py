@@ -78,6 +78,12 @@ class Verbalizer(object):
         self.args = args
         for k in signal_arg_keys:
             v = args.__dict__[k]
+            # if k == 'alias_table_num':
+            #     # default is 1, when > 1 , it provides us extra results by changing alias table
+            #     if v > 1:
+            #         self.signal_args[k] = v
+            # else:
+            # default is None
             if v is not None:
                 self.signal_args[k] = v
 
@@ -100,47 +106,57 @@ class Verbalizer(object):
 
         return result_string
 
-    def cpm2_gen_by_prompt(self, prefix_type, src_word, task_def, alias_table=None):
-        input_texts = self.convert_all(prefix_type, src_word, task_def, alias_table)
-        pattern2strings = []
-        for input_text in input_texts:
-            if self.args.task == 'fill':
-                # fill_blank(model, input_text, kwargs)
-                return None
-            else:
-                strings = []
-                if 'num_beams' in self.kwargs.keys():
-                    # beam search
-                    strings = self.cpm2_beam_search(input_text)
-                else:
-                    # sample with different params
-                    for i in range(self.args.num_generate_sequences // len(self.signal_args) + 1):
-                        if len(strings) >= self.args.num_generate_sequences:
-                            break
-                        np.random.seed(i * self.args.seed)
-                        if len(self.signal_args) > 0:
-                            # change args
-                            for signal_arg in self.signal_args:
-                                if signal_arg == 'max_tokens_scale':
-                                    l_sw = len(src_word)
-                                    if i % 3 == 0:
-                                        self.kwargs['max_tokens'] = int(l_sw * self.signal_args['max_tokens_scale'])
-                                    elif i % 3 == 1:
-                                        self.kwargs['max_tokens'] = l_sw
-                                    else:
-                                        self.kwargs['max_tokens'] = int(l_sw / self.signal_args['max_tokens_scale'])
-                                elif signal_arg == 'top_n_range':
-                                    tnr_order = i % (2 * self.signal_args['top_n_range'])
-                                    self.kwargs['top_n'] = self.args.top_n - self.signal_args['top_n_range'] + tnr_order
-                                # generate with new kwargs
-                                strings.append(self.cpm2_sample(input_text))
-                        else:
-                            # only change seed
-                            strings.append(self.cpm2_sample(input_text))
-                processed_strings = self.process(strings)
-                pattern2strings.append(processed_strings[:self.args.num_return_sequences])
+    def pattern_num(self, prefix_type):
+        return len(self.g_patterns[prefix_type])
 
-        return pattern2strings
+    def cpm2_gen_by_prompt(self, prefix_type, src_word, task_def, alias_tables=None):
+        pattern2strings = [[] for i in range(self.pattern_num(prefix_type))]
+        for alias_table in alias_tables:
+            input_texts = self.convert_all(prefix_type, src_word, task_def, alias_table)
+            for pattern_id, input_text in enumerate(input_texts):
+                if self.args.task == 'fill':
+                    # fill_blank(model, input_text, kwargs)
+                    return None
+                else:
+                    strings = []
+                    if 'num_beams' in self.kwargs.keys():
+                        # beam search
+                        strings = self.cpm2_beam_search(input_text)
+                    else:
+                        # sample with different params
+                        passes = self.args.num_generate_sequences // (len(self.signal_args) * len(alias_table))
+                        rotation_num = 1 + passes
+                        for i in range(rotation_num):
+                            if len(strings) >= self.args.num_generate_sequences:
+                                break
+                            np.random.seed(i * self.args.seed)
+                            if len(self.signal_args) > 0:
+                                # change args
+                                for signal_arg in self.signal_args:
+                                    if signal_arg == 'max_tokens_scale':
+                                        l_sw = len(src_word)
+                                        if i % 3 == 0:
+                                            self.kwargs['max_tokens'] = int(l_sw * self.signal_args['max_tokens_scale'])
+                                        elif i % 3 == 1:
+                                            self.kwargs['max_tokens'] = l_sw
+                                        else:
+                                            self.kwargs['max_tokens'] = int(l_sw / self.signal_args['max_tokens_scale'])
+                                    elif signal_arg == 'top_n_range':
+                                        tnr_order = i % (2 * self.signal_args['top_n_range'])
+                                        self.kwargs['top_n'] = self.args.top_n - self.signal_args[
+                                            'top_n_range'] + tnr_order
+                                    # generate with new kwargs
+                                    strings.append(self.cpm2_sample(input_text))
+                            else:
+                                # only change seed
+                                strings.append(self.cpm2_sample(input_text))
+                    pattern2strings[pattern_id].extend(strings)
+        # process and truncate
+        final_pattern2strings = []
+        for strings in pattern2strings:
+            pure_strings = self.process(strings)
+            final_pattern2strings.append(pure_strings[:self.args.num_return_sequences])
+        return final_pattern2strings
 
     def process(self, strings):
         # default strategy is None

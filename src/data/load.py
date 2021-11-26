@@ -2,6 +2,7 @@
 import pickle
 import random
 from src.data.discover_alias import HasAlias
+from src.model.const import few_shot_alias_table
 
 SOS = 2
 EOS = 3
@@ -53,31 +54,43 @@ class AliasDataset:
                 pairs.append((src_word, tgt_word))
         return pairs
 
-    def sample_alias_table(self, num):
-        examples = random.sample(self.pure_data, num)
+    def sample_alias_table(self, num, alias_data_source):
         alias_table = {}
-        alias_num = 0
-        for pure_data in examples:
-            if alias_num >= num:
-                break
-            src_word = pure_data.src_word
-            tgt_words = pure_data.tgt_words
-            alias_table[src_word] = tgt_words
-            alias_num += len(tgt_words)
+        if alias_data_source == 'whole_dataset':
+            examples = random.sample(self.pure_data, num)
+            alias_num = 0
+            for pure_data in examples:
+                if alias_num >= num:
+                    break
+                src_word = pure_data.src_word
+                tgt_words = pure_data.tgt_words
+                alias_table[src_word] = tgt_words
+                alias_num += len(tgt_words)
+        else:
+            # from support pool
+            src_table = few_shot_alias_table[self.alias_type]
+            example_keys = random.sample(src_table.keys(), num)
+            alias_table = {k: src_table[k] for k in example_keys}
+
         return alias_table
 
-    def get_alias_example_table(self, src_word, args):
+    def get_alias_example_tables(self, src_word, args):
+        alias_tables = []
         if args.alias_example_strategy == 'cluster':
-            alias_table = self.sample_alias_table(src_word)
+            # use cluster to calculate similarity, not finished yet
+            alias_table = self.sample_alias_table(src_word, args.alias_data_source)
         else:
-            # randomly sample examples
-            alias_table = self.sample_alias_table(args.task_specific_prompt_num)
-        return alias_table
+            # randomly sample examples from whole dataset or support pool
+            for i in range(args.alias_table_num):
+                alias_table = self.sample_alias_table(args.task_specific_prompt_num, args.alias_data_source)
+                alias_tables.append(alias_table)
+        return alias_tables
 
 
 if __name__ == "__main__":
     # t = AliasDataset('/data/tsq/xlink/bd/has_alias_relation_record.pkl', 'synonym', 'test')
-    t = AliasDataset('/data/tsq/xlink/bd/purify/filter_english/has_alias_relation_record.pkl', 'punctuation', 'test')
+    t = AliasDataset('/data/tsq/xlink/bd/purify/filter_english/pool_100/has_alias_relation_record.pkl', 'synonym',
+                     'test')
 
     for _src_word, _tgt_word in t.sample(500, reverse=True):
         print(_src_word, _tgt_word)

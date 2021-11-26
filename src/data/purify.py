@@ -42,6 +42,7 @@ def _filter_stop_words(has_alias_relation_record: dict):
                 continue
             else:
                 cleaned_list.append(has_alias)
+        new_data[alias_type] = cleaned_list
     print("[1] Filter stop words data: ", filtered_num)
     return new_data, filtered_num
 

@@ -37,8 +37,9 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
             src_word, tgt_words = batch
             # generate by PLM
             if args.extra_prompt == 'task_specific':
-                alias_table = data.get_alias_example_table(src_word, args)
-                pred_words = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, args.task_definition, alias_table)
+                alias_tables = data.get_alias_example_tables(src_word, args)
+                pred_words = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, args.task_definition,
+                                                           alias_tables)
             else:
                 alias_table = None
                 pred_words = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, False, alias_table)
@@ -49,7 +50,7 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
             score, record = record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, golden, pred,
                                           batch_iter)
             if args.extra_prompt == 'task_specific':
-                record['alias_table'] = alias_table
+                record['alias_table'] = alias_tables
             records.append(record)
     except RuntimeError:
         pass
@@ -161,8 +162,9 @@ def main():
     parser.add_argument('--example_num', type=int, default=-1)
     parser.add_argument('--alias_type', default='synonym',
                         choices=['prefix', 'suffix', 'abbreviation', 'synonym', 'punctuation', 'bilingual', 'multiple'])
-    parser.add_argument('--result_dir', default='/data/tsq/xlink/bd/result')
-    parser.add_argument('--data_path', default='/data/tsq/xlink/bd/has_alias_relation_record.pkl')
+    parser.add_argument('--result_dir', default='/data/tsq/xlink/bd/purify/filter_english/pool_100/result')
+    parser.add_argument('--data_path',
+                        default='/data/tsq/xlink/bd/purify/filter_english/pool_100/has_alias_relation_record.pkl')
 
     # Whether to use data
     parser.add_argument('--learning', type=str, default='few_shot',
@@ -171,9 +173,12 @@ def main():
     parser.add_argument('--extra_prompt', type=str, default='task_specific',
                         choices=['task_specific', 'prefix_tuning'])
     parser.add_argument('--task_specific_prompt_num', type=int, default=4)
+    parser.add_argument('--alias_table_num', type=int, default=4, help="how many  alias_tables will be sampled")
     parser.add_argument('--task_definition', action="store_true")
     parser.add_argument('--alias_example_strategy', type=str, default='random',
                         choices=['random', 'cluster'])
+    parser.add_argument('--alias_data_source', type=str, default='whole_dataset',
+                        choices=['whole_dataset', 'support_pool'])
     parser = add_decode_param(parser)
     args = parser.parse_args()
     cpm2_kwargs = reduce_args(args)

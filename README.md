@@ -297,5 +297,15 @@ Different alias type domain:
 
     - So, if we want to overcome the alias type like someone's `字`  . We should provide the prompt pattern like `src_name ，字 ` and the generated word should be concatenated  with the `src_name`'s last name.
 
-- 
+## 3.2 alias data
 
+use support set as alias_data_source & sample different tables for one src_word
+
+(default: top_n_range=4 max_tokens_scale=2 pattern_num=4 num_return_sequences all num_generate_sequences=50 max_overlap_scale=1 punctuation_strategy=lazy example_num=2000)
+
+| alias_type   | alias_data_source | alias_table_num | best_EM | best_True |
+| ------------ | ----------------- | --------------- | ------- | --------- |
+| abbreviation | support_pool=20   | 4               |         |           |
+| abbreviation | support_pool=20   | 2               |         |           |
+| abbreviation | whole_dataset     | 4               |         |           |
+| abbreviation | whole_dataset     | 2               |         |           |
