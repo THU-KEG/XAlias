@@ -303,9 +303,23 @@ use support set as alias_data_source & sample different tables for one src_word
 
 (default: top_n_range=4 max_tokens_scale=2 pattern_num=4 num_return_sequences all num_generate_sequences=50 max_overlap_scale=1 punctuation_strategy=lazy example_num=2000)
 
-| alias_type   | alias_data_source | alias_table_num | best_EM | best_True |
-| ------------ | ----------------- | --------------- | ------- | --------- |
-| abbreviation | support_pool=20   | 4               |         |           |
-| abbreviation | support_pool=20   | 2               |         |           |
-| abbreviation | whole_dataset     | 4               |         |           |
-| abbreviation | whole_dataset     | 2               |         |           |
+alias_type==abbreviation:
+
+| alias_data_source | alias_table_num | avg_num  | best_EM | best_True | EM                                                | True                                               |
+| ----------------- | --------------- | -------- | ------- | --------- | ------------------------------------------------- | -------------------------------------------------- |
+| support_pool=20   | 4               | 77.07875 | 0.275   | 0.33      | [ 0.185,        0.145,        0.185,        0.21] | [0.225,        0.225,        0.245,        0.27]   |
+| support_pool=20   | 2               | 42.27625 | 0.23    | 0.28      | [ 0.13,        0.13,        0.165,        0.165]  | [0.185,        0.185,        0.215,        0.225]  |
+| whole_dataset     | 4               | 87.03375 | 0.27    | 0.33      | [0.165,        0.2,        0.21,    0.22 ]        | [  0.225,        0.25,        0.26,        0.255 ] |
+| whole_dataset     | 2               | 46.12    | 0.225   | 0.265     | [ 0.125,        0.125,        0.155,        0.17] | [0.195,        0.175,        0.185,        0.23]   |
+
+change template for abbreviation and generate more:
+
+| pattern           | seq_gen | table | example | avg_num  | best_EM | best_True | EM                                               | True                                              |
+| ----------------- | ------- | ----- | ------- | -------- | ------- | --------- | ------------------------------------------------ | ------------------------------------------------- |
+| 4                 | 50      | 4     | 4       | 77.07875 | 0.275   | 0.33      | [ 185,        0.145,        0.185,        0.21]  | [0.225,        0.225,        0.245,        0.27]  |
+| 4                 | 50      | 2     | 4       | 42.27625 | 0.23    | 0.28      | [ 0.13,        0.13,        0.165,        0.165] | [0.185,        0.185,        0.215,        0.225] |
+| ['，即', ',简称'] | 100     | 4     | 4       |          |         |           |                                                  |                                                   |
+| ['，即', ',简称'] | 100     | 4     | 2       |          |         |           |                                                  |                                                   |
+| [',简称']         | 200     | 4     | 4       |          |         |           |                                                  |                                                   |
+| [,'简称']         | 150     | 4     | 4       |          |         |           |                                                  |                                                   |
+| ['，即', ',简称'] | 150     | 8     | 4       |          |         |           |                                                  |                                                   |
