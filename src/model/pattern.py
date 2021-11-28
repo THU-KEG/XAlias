@@ -4,6 +4,7 @@ import numpy as np
 from src.model.decode import beam_search
 from difflib import SequenceMatcher
 from src.model.const import patterns, few_shot_alias_table
+from collections import Counter
 
 signal_arg_keys = ['max_tokens_scale', 'top_n_range']
 
@@ -163,11 +164,15 @@ class Verbalizer(object):
         # print("[0] enter process", strings)
         if self.args.punctuation_strategy:
             strings = self.rm_punctuation(strings)
-        if self.args.redundancy_strategy:
-            # print("[1] Before rm_redundancy", strings)
-            strings = self.rm_redundancy(strings)
-            # print("[3] After rm_redundancy", strings)
-        # print("[4] out process", strings)
+        if self.args.rank_strategy != 'random':
+            strings = self.rank(strings)
+        else:
+            # don't need rank
+            if self.args.redundancy_strategy:
+                # print("[1] Before rm_redundancy", strings)
+                strings = self.rm_redundancy(strings)
+                # print("[3] After rm_redundancy", strings)
+            # print("[4] out process", strings)
         return strings
 
     def rm_punctuation(self, strings):
@@ -192,3 +197,11 @@ class Verbalizer(object):
         if self.args.redundancy_strategy == 'overlap':
             tidy_strings = strip_redundant_words(strings, self.args.max_overlap_scale)
         return tidy_strings
+
+    def rank(self, strings):
+        ranked_strings = []
+        if self.args.rank_strategy == 'frequency':
+            counter = Counter(strings)
+            ranked_string_tuples = counter.most_common(self.args.num_return_sequences)
+            ranked_strings = [t[0] for t in ranked_string_tuples]
+        return ranked_strings

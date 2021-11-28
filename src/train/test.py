@@ -179,6 +179,9 @@ def main():
                         choices=['random', 'cluster'])
     parser.add_argument('--alias_data_source', type=str, default='whole_dataset',
                         choices=['whole_dataset', 'support_pool'])
+    # re-rank
+    parser.add_argument('--rank_strategy', type=str, default='random',
+                        choices=['random', 'frequency'])
     parser = add_decode_param(parser)
     args = parser.parse_args()
     cpm2_kwargs = reduce_args(args)
