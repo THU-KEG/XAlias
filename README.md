@@ -210,6 +210,13 @@ Different alias type domain:
 | suffix       | 4           | 63.8425                    | 0.855   | 0.875     |
 | punctuation  | 5           | 50.876                     | 0.765   | 0.835     |
 
+In fact, we can use `Iverson mark` to represent and calculate the number of generated words, for example:
+
+ 
+$$
+\sum\limits_{tn,mt,s} [1\le top\_n \le9][max\_tokens \in \{\frac{1}{2},1,2\}][0\le seed \le num\_gen/(9*3)]
+$$
+
 ### 3.1.2 Case study
 
 - The correlation between sampled alias_table and generated tgt_word is very high, for example:
@@ -328,11 +335,27 @@ change template for abbreviation and generate more:
 
 Re-rank by frequency of `pred_word`:
 
-| pattern   | seq_gen     | table | avg_num | best_EM | best_True | Re_EM   | Re_True |
-| --------- | ----------- | ----- | ------- | ------- | --------- | ------- | ------- |
-| [,'简称'] | 150(re 500) | 4     | 160.66  | 0.245   | 0.295     | [0.245] | [0.295] |
-| [',简称'] | 150(re 500) | 8     | 285.475 | 0.28    | 0.345     | [0.28]  | [0.345] |
-| [,'简称'] | 150(re 500) | 4     | 160.66  |         |           |         |         |
-| [',简称'] | 150(re 500) | 8     | 285.475 |         |           |         |         |
-| [',简称'] | 150(re 500) | 16    |         |         |           |         |         |
-| [',简称'] | 200(re 500) | 16    |         |         |           |         |         |
+| pattern   | seq_gen     | table | avg_num | best_EM | best_True |
+| --------- | ----------- | ----- | ------- | ------- | --------- |
+| [,'简称'] | 150(re 500) | 4     | 160.66  | 0.245   | 0.295     |
+| [',简称'] | 150(re 500) | 8     | 285.475 | 0.28    | 0.345     |
+| [,'简称'] | 150(re 500) | 4     | 161.505 | 0.24    | 0.28      |
+| [',简称'] | 150(re 500) | 8     | 285.63  | 0.255   | 0.305     |
+| [',简称'] | 150(re 500) | 16    | 418.58  | 0.31    | 0.335     |
+| [',简称'] | 200(re 500) | 16    | 448.1   | 0.345   | 0.405     |
+
+We find that our result has a little difference between w/o re-rank maybe this is because the difference of sampled example alias tables (`row2` vs. `row4`). We didn't specify random seed for sampling alias table.
+
+**From 2021/11/30 every alias table will have a corresponding seed.**
+
+**Question**:  But how to make sure our fixed seed sampled table has no bias ???
+
+(default: table=32, seq_gen= 256, re=500, pattern_num=1)
+
+| pattern        | type         | avg_num | best_EM | best_True | Re_True | Re_EM |
+| -------------- | ------------ | ------- | ------- | --------- | ------- | ----- |
+| ['又名']       | prefix       |         |         |           |         |       |
+| [',简称']      | suffix       |         |         |           |         |       |
+| [',简称']      | abbreviation |         |         |           |         |       |
+| ['的同义词是'] | synonym      |         |         |           |         |       |
+| ['的别名是']   | punctuation  |         |         |           |         |       |

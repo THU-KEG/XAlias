@@ -82,8 +82,12 @@ class AliasDataset:
         else:
             # randomly sample examples from whole dataset or support pool
             for i in range(args.alias_table_num):
+                # use random seed to maintain reproducing ability
+                random.seed(args.seed)
                 alias_table = self.sample_alias_table(args.task_specific_prompt_num, args.alias_data_source)
                 alias_tables.append(alias_table)
+                # change seed for every table
+                args.seed += 1
         return alias_tables
 
 

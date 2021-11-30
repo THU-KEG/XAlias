@@ -9,6 +9,7 @@ from src.data.discover_alias import HasAlias
 import numpy as np
 import time
 from src.model.pattern import Verbalizer
+from src.train.measure import hit_evaluate
 from demo.params import add_decode_param, reduce_args
 
 
@@ -79,8 +80,8 @@ def record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, gold
         f.write(pred)
     best_em = 0 if sum(nums_exact_match) == 0 else 1
     best_true = 0 if sum(nums_true) == 0 else 1
-    record = {'iter': batch_iter, 'src_word': src_word, 'golden': golden, 'pred': pred_words, 'EM': nums_exact_match,
-              'True': nums_true, 'best_EM': best_em, 'best_True': best_true}
+    record = {'iter': batch_iter, 'src_word': src_word, 'golden': golden, 'pred': pred_words, 'tgt': tgt_words,
+              'EM': nums_exact_match, 'True': nums_true, 'best_EM': best_em, 'best_True': best_true}
     return score, record
 
 
@@ -149,6 +150,8 @@ def work(args, cpm2_kwargs):
         avg_scores['best_EM'] = avg_best_em
         avg_scores['best_True'] = avg_best_true
         f.write(json.dumps(avg_scores, ensure_ascii=False, indent=4))
+        hits = hit_evaluate(records, args.num_return_sequences)
+        f.write(json.dumps(hits, ensure_ascii=False, indent=4))
     # vis = vis_scores(scores)
     # print(vis)
 
