@@ -125,7 +125,7 @@ class Verbalizer(object):
                         strings = self.cpm2_beam_search(input_text)
                     else:
                         # sample with different params
-                        passes = self.args.num_generate_sequences // (len(self.signal_args) * len(alias_table))
+                        passes = self.args.num_generate_sequences // (len(self.signal_args) * len(alias_tables))
                         rotation_num = 1 + passes
                         for i in range(rotation_num):
                             if len(strings) >= self.args.num_generate_sequences:

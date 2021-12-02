@@ -212,7 +212,7 @@ Different alias type domain:
 
 In fact, we can use `Iverson mark` to represent and calculate the number of generated words, for example:
 
- 
+
 $$
 \sum\limits_{tn,mt,s} [1\le top\_n \le9][max\_tokens \in \{\frac{1}{2},1,2\}][0\le seed \le num\_gen/(9*3)]
 $$
@@ -321,28 +321,25 @@ alias_type==abbreviation:
 
 change template for abbreviation and generate more:
 
-| pattern           | seq_gen | table | example | avg_num  | best_EM | best_True | EM                                               | True                                              |
-| ----------------- | ------- | ----- | ------- | -------- | ------- | --------- | ------------------------------------------------ | ------------------------------------------------- |
-| 4                 | 50      | 4     | 4       | 77.07875 | 0.275   | 0.33      | [ 185,        0.145,        0.185,        0.21]  | [0.225,        0.225,        0.245,        0.27]  |
-| 4                 | 50      | 2     | 4       | 42.27625 | 0.23    | 0.28      | [ 0.13,        0.13,        0.165,        0.165] | [0.185,        0.185,        0.215,        0.225] |
-| ['，即', ',简称'] | 100     | 4     | 4       | 119.0075 | 0.25    | 0.29      | [0.215,        0.205]                            | [0.255,        0.255]                             |
-| ['，即', ',简称'] | 100     | 4     | 2       | 124.3975 | 0.19    | 0.26      | [0.13,        0.17]                              | [0.195,        0.23]                              |
-| [',简称']         | 200     | 4     | 4       | 198.205  | 0.245   | 0.305     | [0.245]                                          | [0.305]                                           |
-| [,'简称']         | 150     | 4     | 4       | 160.66   | 0.245   | 0.295     | [0.245]                                          | [0.295]                                           |
-| [',简称']         | 150     | 8     | 4       | 285.475  | 0.28    | 0.345     | [0.28]                                           | [0.345]                                           |
+| pattern           | seq_gen | table | example | avg_num  | best_EM | best_True | EM                                              | True                                             |
+| ----------------- | ------- | ----- | ------- | -------- | ------- | --------- | ----------------------------------------------- | ------------------------------------------------ |
+| 4                 | 50      | 4     | 4       | 77.07875 | 0.275   | 0.33      | [ 185,        0.145,        0.185,        0.21] | [0.225,        0.225,        0.245,        0.27] |
+| ['，即', ',简称'] | 100     | 4     | 4       | 119.0075 | 0.25    | 0.29      | [0.215,        0.205]                           | [0.255,        0.255]                            |
+| [,'简称']         | 150     | 4     | 4       | 160.66   | 0.245   | 0.295     | [0.245]                                         | [0.295]                                          |
+| [',简称']         | 200     | 4     | 4       | 198.205  | 0.245   | 0.305     | [0.245]                                         | [0.305]                                          |
 
 **Question**: we don't know whether `src_word`  or `tgt_word`  is shorter. So the template and example may provide opposite meaning.
 
 Re-rank by frequency of `pred_word`:
 
-| pattern   | seq_gen     | table | avg_num | best_EM | best_True |
-| --------- | ----------- | ----- | ------- | ------- | --------- |
-| [,'简称'] | 150(re 500) | 4     | 160.66  | 0.245   | 0.295     |
-| [',简称'] | 150(re 500) | 8     | 285.475 | 0.28    | 0.345     |
-| [,'简称'] | 150(re 500) | 4     | 161.505 | 0.24    | 0.28      |
-| [',简称'] | 150(re 500) | 8     | 285.63  | 0.255   | 0.305     |
-| [',简称'] | 150(re 500) | 16    | 418.58  | 0.31    | 0.335     |
-| [',简称'] | 200(re 500) | 16    | 448.1   | 0.345   | 0.405     |
+| pattern   | seq_gen     | table | avg_num | best_EM | best_True | Status |
+| --------- | ----------- | ----- | ------- | ------- | --------- | ------ |
+| [,'简称'] | 150(re 500) | 4     | 160.66  | 0.245   | 0.295     | Right  |
+| [',简称'] | 150(re 500) | 8     | 285.475 | 0.28    | 0.345     | Wrong  |
+| [,'简称'] | 150(re 500) | 4     | 161.505 | 0.24    | 0.28      | Right  |
+| [',简称'] | 150(re 500) | 8     | 285.63  | 0.255   | 0.305     | Wrong  |
+| [',简称'] | 150(re 500) | 16    | 418.58  | 0.31    | 0.335     | Wrong  |
+| [',简称'] | 200(re 500) | 16    | 448.1   | 0.345   | 0.405     | Wrong  |
 
 We find that our result has a little difference between w/o re-rank maybe this is because the difference of sampled example alias tables (`row2` vs. `row4`). We didn't specify random seed for sampling alias table.
 
@@ -352,10 +349,13 @@ We find that our result has a little difference between w/o re-rank maybe this i
 
 (default: table=32, seq_gen= 256, re=500, pattern_num=1)
 
-| pattern        | type         | avg_num | best_EM | best_True | Re_True | Re_EM |
-| -------------- | ------------ | ------- | ------- | --------- | ------- | ----- |
-| ['又名']       | prefix       |         |         |           |         |       |
-| [',简称']      | suffix       |         |         |           |         |       |
-| [',简称']      | abbreviation |         |         |           |         |       |
-| ['的同义词是'] | synonym      |         |         |           |         |       |
-| ['的别名是']   | punctuation  |         |         |           |         |       |
+| pattern        | type         | avg_num | best_EM | best_True | Re_True                                                      |
+| -------------- | ------------ | ------- | ------- | --------- | ------------------------------------------------------------ |
+| ['又名']       | prefix       | 344.875 | 0.67    | 0.78      | "hits@0": 19.5, <br/>"hits@1": 28.0,<br/>    "hits@2": 34.5,<br/>    "hits@3": 39.0,<br/>    "hits@4": 42.5,<br/>    "hits@5": 44.0, |
+| [',简称']      | suffix       | 340.28  | 0.905   | 0.915     | "hits@0": 54.0,<br/>    "hits@1": 65.5,<br/>    "hits@2": 72.0,<br/>    "hits@3": 76.0,<br/>    "hits@4": 78.5,<br/>    "hits@5": 79.0, |
+| [',简称']      | abbreviation | 311.115 | 0.285   | 0.325     | hits@0": 3.5,<br/>    "hits@1": 9.0,<br/>    "hits@2": 10.5,<br/>    "hits@3": 14.5,<br/>    "hits@4": 15.5,<br/>    "hits@5": 15.5, |
+| ['的同义词是'] | synonym      | 240.36  | 0.3     | 0.35      | "hits@0": 5.5,<br/>    "hits@1": 11.0,<br/>    "hits@2": 12.0,<br/>    "hits@3": 12.5,<br/>    "hits@4": 14.0,<br/>    "hits@5": 15.0, |
+| ['的别名是']   | punctuation  | 297.58  | 0.895   | 0.93      | "hits@0": 18.0,<br/>    "hits@1": 47.5,<br/>    "hits@2": 58.5,<br/>    "hits@3": 68.5,<br/>    "hits@4": 76.0,<br/>    "hits@5": 77.0, |
+
+We find a bug and has repaired it, but the bad news is that our experiment result from 2021/11/26 to 2021/11/30 are partially wrong. For these experiments with error code: if the default table_num is 4, then nothing will be wrong.
+
