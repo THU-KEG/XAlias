@@ -1,6 +1,8 @@
 import argparse
 import os
 import json
+import pickle
+from tqdm import tqdm
 
 
 def reverse_read(src_file_path):
@@ -12,7 +14,8 @@ def reverse_read(src_file_path):
     id2mention = {}
     with open(src_file_path, 'r') as fin:
         lines = fin.readlines()
-        for line in lines:
+        len_lines = len(lines)
+        for line in tqdm(lines, total=len_lines):
             pieces = line.strip().split('::=')
             mention = pieces[0]
             ids = pieces[1:]
@@ -26,13 +29,7 @@ def reverse_read(src_file_path):
     return id2mention
 
 
-def work():
-    parser = argparse.ArgumentParser()
-    # path params
-    parser.add_argument('--data_dir', type=str, default='/data/tsq/xlink/bd')
-    parser.add_argument('--src_file', type=str, default='mention_anchors.txt')
-    parser.add_argument('--result_file_name', type=str, default='id2mention')
-    args = parser.parse_args()
+def get_id2mention(args):
     src_file_path = os.path.join(args.data_dir, args.src_file)
     id2mention = reverse_read(src_file_path)
     print("[1]Finish reading")
@@ -62,6 +59,46 @@ def work():
             txt_file.write(line)
             txt_file.write('\n')
     print("[4]Save {}".format(txt_result_file_path))
+
+
+def get_id2ent_name(args):
+    src_file_path = os.path.join(args.data_dir, args.src_file)
+    id2ent_name = {}
+    with open(src_file_path, 'r') as fin:
+        lines = fin.readlines()
+        len_lines = len(lines)
+        for line in tqdm(lines, total=len_lines):
+            pieces = line.strip('\n').split('\t\t')
+            bdi = pieces[-1]
+            assert len(pieces) == 4
+            if pieces[1] == '':
+                ent_name = pieces[0]
+            else:
+                ent_name = pieces[0] + pieces[1]
+                # print("Error in reading line {}".format(i))
+                # print(line)
+                # raise RuntimeError
+            id2ent_name[bdi] = ent_name
+    print("[1]Finish reading")
+    result_path = os.path.join(args.data_dir, "{}.pkl".format(args.result_file_name))
+    with open(result_path, 'wb') as fout:
+        pickle.dump(id2ent_name, fout)
+        print("[2]Save {}".format(result_path))
+
+
+def work():
+    parser = argparse.ArgumentParser()
+    # path params
+    parser.add_argument('--data_dir', type=str, default='/data/tsq/xlink/bd')
+    parser.add_argument('--src_file', type=str, default='mention_anchors.txt',
+                        choices=['mention_anchors.txt', 'bd_instance_ID.txt'])
+    parser.add_argument('--result_file_name', type=str, default='id2mention')
+    parser.add_argument('--task', type=str, default='id2mention', choices=['id2mention', 'id2ent_name'])
+    args = parser.parse_args()
+    if args.task == 'id2mention':
+        get_id2mention(args)
+    elif args.task == 'id2ent_name':
+        get_id2ent_name(args)
 
 
 if __name__ == '__main__':
