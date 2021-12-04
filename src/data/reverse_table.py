@@ -74,7 +74,9 @@ def get_id2ent_name(args):
             if pieces[1] == '':
                 ent_name = pieces[0]
             else:
-                ent_name = pieces[0] + pieces[1]
+                # because in the mention text, there are hardly ever full name, we have to change it
+                # ent_name = pieces[0] + pieces[1]
+                ent_name = pieces[0]
                 # print("Error in reading line {}".format(i))
                 # print(line)
                 # raise RuntimeError
