@@ -349,7 +349,7 @@ We find that our result has a little difference between w/o re-rank maybe this i
 
 (default: table=32, seq_gen= 256, re=500, pattern_num=1)
 
-| pattern        | type         | avg_num | best_EM | best_True | Re_True                                                      |
+| pattern        | type         | avg_num | best_EM | best_True | Re_EM                                                        |
 | -------------- | ------------ | ------- | ------- | --------- | ------------------------------------------------------------ |
 | ['又名']       | prefix       | 344.875 | 0.67    | 0.78      | "hits@0": 19.5, <br/>"hits@1": 28.0,<br/>    "hits@2": 34.5,<br/>    "hits@3": 39.0,<br/>    "hits@4": 42.5,<br/>    "hits@5": 44.0, |
 | [',简称']      | suffix       | 340.28  | 0.905   | 0.915     | "hits@0": 54.0,<br/>    "hits@1": 65.5,<br/>    "hits@2": 72.0,<br/>    "hits@3": 76.0,<br/>    "hits@4": 78.5,<br/>    "hits@5": 79.0, |
@@ -359,3 +359,15 @@ We find that our result has a little difference between w/o re-rank maybe this i
 
 We find a bug and has repaired it, but the bad news is that our experiment result from 2021/11/26 to 2021/11/30 are partially wrong. For these experiments with error code: if the default table_num is 4, then nothing will be wrong.
 
+## 3.3 reconstruct dataset
+
+| pattern        | type          | avg_num | best_EM | best_True | Re_EM                                                        |
+| -------------- | ------------- | ------- | ------- | --------- | ------------------------------------------------------------ |
+| ['，即']       | prefix_extend |         |         |           | "hits@0": 19.5,  "hits@1": 28.0,    "hits@2": 34.5,    "hits@3": 39.0,    "hits@4": 42.5,    "hits@5": 44.0, |
+| ['，简称']     | prefix_reduce |         |         |           | "hits@0": 54.0,    "hits@1": 65.5,    "hits@2": 72.0,    "hits@3": 76.0,    "hits@4": 78.5,    "hits@5": 79.0, |
+| ['，即']       | suffix_extend |         |         |           | hits@0": 3.5,    "hits@1": 9.0,    "hits@2": 10.5,    "hits@3": 14.5,    "hits@4": 15.5,    "hits@5": 15.5, |
+| ['，简称']     | suffix_reduce |         |         |           | "hits@0": 5.5,    "hits@1": 11.0,    "hits@2": 12.0,    "hits@3": 12.5,    "hits@4": 14.0,    "hits@5": 15.0, |
+| ['，即']       | expansion     |         |         |           |                                                              |
+| ['，简称']     | abbreviation  |         |         |           | "hits@0": 18.0,    "hits@1": 47.5,    "hits@2": 58.5,    "hits@3": 68.5,    "hits@4": 76.0,    "hits@5": 77.0, |
+| ['的同义词是'] | synonym       |         |         |           |                                                              |
+| ['的别名是']   | punctuation   |         |         |           |                                                              |

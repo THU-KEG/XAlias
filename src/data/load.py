@@ -92,9 +92,11 @@ class AliasDataset:
 
 
 if __name__ == "__main__":
-    # t = AliasDataset('/data/tsq/xlink/bd/has_alias_relation_record.pkl', 'synonym', 'test')
-    t = AliasDataset('/data/tsq/xlink/bd/purify/filter_english/pool_100/has_alias_relation_record.pkl', 'synonym',
+    # t = AliasDataset('/data/tsq/xlink/bd/has_alias_relation_record.pkl', 'prefix_extend', 'test')
+    t = AliasDataset('/data/tsq/xlink/bd/purify/filter_english/pool_80/has_alias_relation_record.pkl', 'prefix_extend',
                      'test')
+    # t = AliasDataset('/data/tsq/xlink/bd/purify/filter_english/pool_100/has_alias_relation_record.pkl', 'synonym',
+    #                  'test')
 
     for _src_word, _tgt_word in t.sample(500, reverse=True):
         print(_src_word, _tgt_word)

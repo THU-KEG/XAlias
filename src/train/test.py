@@ -9,7 +9,7 @@ from src.data.discover_alias import HasAlias
 import numpy as np
 import time
 from src.model.pattern import Verbalizer
-from src.train.measure import hit_evaluate
+from src.train.measure import hit_evaluate, get_avg_generate_nums
 from demo.params import add_decode_param, reduce_args
 
 
@@ -150,8 +150,12 @@ def work(args, cpm2_kwargs):
         avg_scores['best_EM'] = avg_best_em
         avg_scores['best_True'] = avg_best_true
         f.write(json.dumps(avg_scores, ensure_ascii=False, indent=4))
+        # write hits@k and avg_generate_nums
         hits = hit_evaluate(records, args.num_return_sequences)
         f.write(json.dumps(hits, ensure_ascii=False, indent=4))
+        avg_predict_nums = get_avg_generate_nums(records)
+        f.write("avg predict_word_num for each pattern:{}\n".format(avg_predict_nums))
+        f.write("avg_num:{}\n".format(sum(avg_predict_nums) / len(avg_predict_nums)))
     # vis = vis_scores(scores)
     # print(vis)
 
@@ -164,10 +168,11 @@ def main():
     parser.add_argument('--fast', action="store_true")
     parser.add_argument('--example_num', type=int, default=-1)
     parser.add_argument('--alias_type', default='synonym',
-                        choices=['prefix', 'suffix', 'abbreviation', 'synonym', 'punctuation', 'bilingual', 'multiple'])
-    parser.add_argument('--result_dir', default='/data/tsq/xlink/bd/purify/filter_english/pool_100/result')
+                        choices=['prefix_extend', 'prefix_reduce', 'suffix_extend', 'suffix_reduce',
+                                 'expansion', 'abbreviation', 'punctuation', 'synonym'])
+    parser.add_argument('--result_dir', default='/data/tsq/xlink/bd/purify/filter_english/pool_80/result')
     parser.add_argument('--data_path',
-                        default='/data/tsq/xlink/bd/purify/filter_english/pool_100/has_alias_relation_record.pkl')
+                        default='/data/tsq/xlink/bd/purify/filter_english/pool_80/has_alias_relation_record.pkl')
 
     # Whether to use data
     parser.add_argument('--learning', type=str, default='few_shot',

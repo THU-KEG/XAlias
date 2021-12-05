@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pickle
 import pandas as pd
 from src.data.discover_alias import HasAlias
+from src.train.measure import get_avg_generate_nums
 
 
 def work():
@@ -42,14 +43,7 @@ def work():
         record_json_path = os.path.join(args.at_result_dir, 'records.json')
         with open(record_json_path, 'r') as f:
             records = json.load(f)
-            pattern_num = len(records[0]['pred'])
-            avg_predict_nums = [0] * pattern_num
-            for record in records:
-                pattern2predicts = record['pred']
-                for i, pattern2predict in enumerate(pattern2predicts):
-                    avg_predict_nums[i] += len(pattern2predict)
-            for k in range(pattern_num):
-                avg_predict_nums[k] = avg_predict_nums[k] / len(records)
+            avg_predict_nums = get_avg_generate_nums(records)
             print("Data from: ", args.at_result_dir)
             print("avg predict_word_num for each pattern:", avg_predict_nums)
             print("avg_num:", sum(avg_predict_nums) / len(avg_predict_nums))

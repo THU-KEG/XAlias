@@ -37,3 +37,15 @@ def hit_evaluate(records, num_return_sequences):
 
     # print("{} in {} question has no answer".format(no_ans_question_num, num_q))
     return {"hits@" + str(i): v * 100 for i, v in enumerate(result)}
+
+
+def get_avg_generate_nums(records):
+    pattern_num = len(records[0]['pred'])
+    avg_predict_nums = [0] * pattern_num
+    for record in records:
+        pattern2predicts = record['pred']
+        for i, pattern2predict in enumerate(pattern2predicts):
+            avg_predict_nums[i] += len(pattern2predict)
+    for k in range(pattern_num):
+        avg_predict_nums[k] = avg_predict_nums[k] / len(records)
+    return avg_predict_nums
