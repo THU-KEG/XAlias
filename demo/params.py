@@ -79,7 +79,7 @@ def add_decode_param(parser: argparse.ArgumentParser):
     parser.add_argument('--seed', type=int, default=1453)
     parser.add_argument('--top_p', type=float, default=None)
     parser.add_argument('--top_n', type=int, default=5)
-    parser.add_argument('--temperature', type=float, default=0.85)
+    parser.add_argument('--temperature', type=float, default=0.9)
     parser.add_argument('--frequency_penalty', type=float, default=0)
     parser.add_argument('--presence_penalty', type=float, default=0)
     # how to process the generated strings
@@ -92,7 +92,7 @@ def add_decode_param(parser: argparse.ArgumentParser):
     parser.add_argument('--max_tokens_scale', type=float, default=None,
                         help='the mt will be mts * len(sw) or len(sw) / mts')
     # sample
-    parser.add_argument('--top_n_range', type=int, default=None,
+    parser.add_argument('--top_n_range', type=int, default=4,
                         help='the top_n will be [top_n-top_n_range, top_n+top_n_range]')
     # beam search
     parser.add_argument('--num_beams', type=int, default=None)

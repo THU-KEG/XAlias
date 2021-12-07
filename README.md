@@ -361,13 +361,23 @@ We find a bug and has repaired it, but the bad news is that our experiment resul
 
 ## 3.3 reconstruct dataset
 
+rerank by freq:
+
 | pattern        | type          | avg_num | best_EM | best_True | Re_EM                                                        |
 | -------------- | ------------- | ------- | ------- | --------- | ------------------------------------------------------------ |
-| ['，即']       | prefix_extend |         |         |           | "hits@0": 19.5,  "hits@1": 28.0,    "hits@2": 34.5,    "hits@3": 39.0,    "hits@4": 42.5,    "hits@5": 44.0, |
-| ['，简称']     | prefix_reduce |         |         |           | "hits@0": 54.0,    "hits@1": 65.5,    "hits@2": 72.0,    "hits@3": 76.0,    "hits@4": 78.5,    "hits@5": 79.0, |
-| ['，即']       | suffix_extend |         |         |           | hits@0": 3.5,    "hits@1": 9.0,    "hits@2": 10.5,    "hits@3": 14.5,    "hits@4": 15.5,    "hits@5": 15.5, |
-| ['，简称']     | suffix_reduce |         |         |           | "hits@0": 5.5,    "hits@1": 11.0,    "hits@2": 12.0,    "hits@3": 12.5,    "hits@4": 14.0,    "hits@5": 15.0, |
-| ['，即']       | expansion     |         |         |           |                                                              |
-| ['，简称']     | abbreviation  |         |         |           | "hits@0": 18.0,    "hits@1": 47.5,    "hits@2": 58.5,    "hits@3": 68.5,    "hits@4": 76.0,    "hits@5": 77.0, |
-| ['的同义词是'] | synonym       |         |         |           |                                                              |
-| ['的别名是']   | punctuation   |         |         |           |                                                              |
+| ['，即']       | prefix_extend |         |         |           | "hits@0": 11.0,  "hits@1": 17.5,    "hits@2": 21.0,    "hits@3": 22.0,    "hits@4": 22.0,    "hits@5": 22.5, |
+| ['，简称']     | prefix_reduce |         |         |           | "hits@0": 58.5,    "hits@1": 71.5,    "hits@2": 76.5,    "hits@3": 81.0,    "hits@4": 82.0,    "hits@5": 83.5, |
+| ['，即']       | suffix_extend |         |         |           | hits@0": 6.59,    "hits@1": 17.0,    "hits@2": 20.9,    "hits@3": 24.7,    "hits@4": 26.4,    "hits@5": 28.6, |
+| ['，简称']     | suffix_reduce |         |         |           | "hits@0": 72.5,    "hits@1": 81.5,    "hits@2": 85.0,    "hits@3": 88.5,    "hits@4": 89.5,    "hits@5": 93.0, |
+| ['，即']       | expansion     |         |         |           | "hits@0": 11.5,    "hits@1": 16.0,    "hits@2": 16.5,    "hits@3": 18.0,    "hits@4": 18.5,    "hits@5": 19.5, |
+| ['，简称']     | abbreviation  |         |         |           | "hits@0": 17.5,    "hits@1": 27.0,    "hits@2": 32.0,    "hits@3": 32.5,    "hits@4": 35.0,    "hits@5": 38.5, |
+| ['的同义词是'] | synonym       |         |         |           | "hits@0": 3.0,    "hits@1": 3.5,    "hits@2": 4.5,    "hits@3": 5.5,    "hits@4": 7.0,    "hits@5": 7.5, |
+| ['的别名是']   | punctuation   |         |         |           | "hits@0": 60.0,    "hits@1": 73.5,    "hits@2": 76.2,    "hits@3": 78.4,    "hits@4": 78.9,    "hits@5": 81.1, |
+
+different rerank strategies for abbreviation:
+
+| cal_prob | strategy    | avg_num | best_EM | best_True | Re_EM                                                        |
+| -------- | ----------- | ------- | ------- | --------- | ------------------------------------------------------------ |
+| softmax  | frequency   |         |         |           | "hits@0": 11.0,  "hits@1": 17.5,    "hits@2": 21.0,    "hits@3": 22.0,    "hits@4": 22.0,    "hits@5": 22.5, |
+| softmax  | probability |         |         |           |                                                              |
+| softmax  | prob_freq   |         |         |           | "hits@0": 58.5,    "hits@1": 71.5,    "hits@2": 76.5,    "hits@3": 81.0,    "hits@4": 82.0,    "hits@5": 83.5, |

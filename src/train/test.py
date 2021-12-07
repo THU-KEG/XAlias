@@ -9,6 +9,7 @@ from src.data.discover_alias import HasAlias
 import numpy as np
 import time
 from src.model.pattern import Verbalizer
+from src.model.decode import beam2dict
 from src.train.measure import hit_evaluate, get_avg_generate_nums
 from demo.params import add_decode_param, reduce_args
 
@@ -39,17 +40,18 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
             # generate by PLM
             if args.extra_prompt == 'task_specific':
                 alias_tables = data.get_alias_example_tables(src_word, args)
-                pred_words = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, args.task_definition,
-                                                           alias_tables)
+                pred_words, pattern2beams = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word,
+                                                                          args.task_definition,
+                                                                          alias_tables)
             else:
                 alias_table = None
-                pred_words = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, False, alias_table)
+                pred_words, pattern2beams = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, False, alias_table)
             golden = ' '.join(tgt_words)
             pred = ' '.join([i for arr in pred_words for i in arr])
 
             # record the result
             score, record = record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, golden, pred,
-                                          batch_iter)
+                                          pattern2beams, batch_iter)
             if args.extra_prompt == 'task_specific':
                 record['alias_table'] = alias_tables
             records.append(record)
@@ -58,7 +60,7 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
     return score, records
 
 
-def record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, golden, pred, batch_iter):
+def record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, golden, pred, pattern2beams, batch_iter):
     # update True and EM
     num_pattern = len(pred_words)
     nums_exact_match = [0] * num_pattern
@@ -81,7 +83,8 @@ def record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, gold
     best_em = 0 if sum(nums_exact_match) == 0 else 1
     best_true = 0 if sum(nums_true) == 0 else 1
     record = {'iter': batch_iter, 'src_word': src_word, 'golden': golden, 'pred': pred_words, 'tgt': tgt_words,
-              'EM': nums_exact_match, 'True': nums_true, 'best_EM': best_em, 'best_True': best_true}
+              'beams': pattern2beams, 'EM': nums_exact_match, 'True': nums_true, 'best_EM': best_em,
+              'best_True': best_true}
     return score, record
 
 
@@ -124,7 +127,7 @@ def work(args, cpm2_kwargs):
 
     # save the result
     with open(os.path.join(log_dir, 'records.json'), 'w', encoding='utf-8') as fr:
-        fr.write(json.dumps(records, ensure_ascii=False, indent=4))
+        fr.write(json.dumps(records, ensure_ascii=False, indent=4, default=beam2dict))
 
     with open(os.path.join(log_dir, 'scores.txt'), 'w', encoding='utf-8') as f:
         for k, v in args.__dict__.items():
@@ -166,7 +169,8 @@ def main():
     # data param
     parser.add_argument('--test', action="store_true")
     parser.add_argument('--fast', action="store_true")
-    parser.add_argument('--example_num', type=int, default=-1)
+    # parser.add_argument('--example_num', type=int, default=-1)
+    parser.add_argument('--example_num', type=int, default=20)
     parser.add_argument('--alias_type', default='synonym',
                         choices=['prefix_extend', 'prefix_reduce', 'suffix_extend', 'suffix_reduce',
                                  'expansion', 'abbreviation', 'punctuation', 'synonym'])
@@ -185,11 +189,14 @@ def main():
     parser.add_argument('--task_definition', action="store_true")
     parser.add_argument('--alias_example_strategy', type=str, default='random',
                         choices=['random', 'cluster'])
-    parser.add_argument('--alias_data_source', type=str, default='whole_dataset',
+    parser.add_argument('--alias_data_source', type=str, default='support_pool',
                         choices=['whole_dataset', 'support_pool'])
     # re-rank
-    parser.add_argument('--rank_strategy', type=str, default='random',
-                        choices=['random', 'frequency'])
+    parser.add_argument('--rank_strategy', type=str, default='frequency',
+                        choices=['random', 'frequency', 'probability', 'prob_freq'])
+    parser.add_argument('--calculate_prob', type=str, default='softmax',
+                        choices=['origin', 'softmax'],
+                        help="how to transfer the logits of CPM2 to probability used in ranking")
     parser = add_decode_param(parser)
     args = parser.parse_args()
     cpm2_kwargs = reduce_args(args)

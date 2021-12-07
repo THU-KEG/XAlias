@@ -18,6 +18,9 @@ class Beam(object):
         self.log_probs = log_probs
         self.context = context
 
+    def __repr__(self):
+        return "tokens:{}, probs:{}".format(self.tokens, self.log_probs)
+
     def extend(self, token, log_prob, context):
         return Beam(tokens=self.tokens + [token],
                     log_probs=self.log_probs + [log_prob],
@@ -39,6 +42,20 @@ class Beam(object):
             if token in self.tokens:
                 self.tokens.remove(token)
 
+    def set_freq(self, init=False):
+        if init:
+            # We temporarily use context to represent frequency for ranking
+            self.context = 0
+        else:
+            self.context += 1
+
+    @property
+    def avg_weighted_freq(self):
+        if len(self.tokens) == 0:
+            return 1e-6
+        weight = sum(self.log_probs) / len(self.tokens)
+        return weight * self.context
+
     @property
     def latest_token(self):
         return self.tokens[-1]
@@ -48,6 +65,13 @@ class Beam(object):
         if len(self.tokens) == 0:
             return 1e-6
         return sum(self.log_probs) / len(self.tokens)
+
+
+def beam2dict(beam: Beam):
+    d = {}
+    beam.log_probs = beam.avg_log_prob
+    d.update(beam.__dict__)
+    return d
 
 
 def get_topk_tokens(logits: cupy.ndarray, k: int):
@@ -145,3 +169,63 @@ def beam_search(model: bminf.models.CPM2,
     final_beams = finalize(chosen_beams, num_return_sequences)
     results = [model.id_to_text(beam.tokens) for beam in final_beams]
     return results
+
+
+def generate_return_beam(model: bminf.models.CPM2,
+                         calculate_prob: str,
+                         input_sentence: str,
+                         max_tokens: int = 128,
+                         top_n: Optional[int] = None,
+                         top_p: Optional[float] = None,
+                         temperature: float = 0.9,
+                         frequency_penalty: float = 0,
+                         presence_penalty: float = 0,
+                         stop_tokens: Optional[List[str]] = None,
+                         ) -> (List[Beam], bool):
+    if stop_tokens is None:
+        stop_tokens = []
+    else:
+        stop_tokens = [model.tokenizer.encode(i) for i in stop_tokens]
+
+        # <eod> must be in the set of stop words.
+    if not model.tokenizer.eod_id in stop_tokens:
+        stop_tokens.append(model.tokenizer.eod_id)
+
+    ctx, sampler, _ = model.pre_processing(
+        input_sentence + SPAN_TOKEN,
+        [len(input_sentence)],
+        max_tokens, top_n, top_p, temperature,
+        frequency_penalty, presence_penalty, 189
+    )
+
+    logits = model.decode_step(ctx, [model.tokenizer.sod_id])[0]
+    decoder_ipts = model.tokenizer.get_span(189)
+    blanks = []
+    beam = Beam(blanks, [], context=None)
+
+    stoped = False
+    for _ in range(max_tokens):
+        logits = model.decode_step(ctx, [decoder_ipts])[0]
+        decoder_ipts = sampler.sample(logits)
+        if decoder_ipts in stop_tokens:
+            stoped = True
+            break
+        blanks.append(decoder_ipts)
+        token_prob = logit_calculate_prob(logits, decoder_ipts, calculate_prob)
+        beam = beam.extend(decoder_ipts, token_prob, context=None)
+    # convert id to strings
+    beam.tokens = model.id_to_text(beam.tokens)
+    return beam, stoped
+
+
+def logit_calculate_prob(logits, decoder_ipts, calculate_prob):
+    if calculate_prob == 'softmax':
+        logits -= logits.max()
+        logits = cupy.exp(logits)
+        logits /= logits.sum()
+        cpu_probs = cupy.asnumpy(logits).astype(np.float32)
+        return cpu_probs[decoder_ipts]
+    else:
+        # origin
+        logit = cupy.asnumpy(logits)[decoder_ipts]
+        return logit.astype(np.float32)
