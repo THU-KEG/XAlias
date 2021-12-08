@@ -2,6 +2,7 @@ import argparse
 import os
 import json
 import shutil
+import pickle
 from tqdm import tqdm
 from src.data.load import AliasDataset
 import bminf
@@ -11,12 +12,10 @@ import time
 from src.model.pattern import Verbalizer
 from src.model.decode import beam2dict
 from src.train.measure import hit_evaluate, get_avg_generate_nums
-from demo.params import add_decode_param, reduce_args
+from demo.params import add_decode_param, reduce_args, add_test_param
 
 
-def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
-    # model.eval()
-    # torch.cuda.empty_cache()
+def init_log_sub_dirs(log_dir):
     ref_dir = os.path.join(log_dir, 'ref')
     sum_dir = os.path.join(log_dir, 'sum')
 
@@ -26,6 +25,13 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
     if os.path.isdir(sum_dir):
         shutil.rmtree(sum_dir)
     os.mkdir(sum_dir)
+    return ref_dir, sum_dir
+
+
+def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
+    # model.eval()
+    # torch.cuda.empty_cache()
+    ref_dir, sum_dir = init_log_sub_dirs(log_dir)
 
     score = {'EM': [], 'True': []}
     records = []
@@ -124,8 +130,14 @@ def work(args, cpm2_kwargs):
         print('log dir %s exists, be careful that we will overwrite it' % log_dir)
 
     scores, records = validate(data, model, device, log_dir, args, cpm2_kwargs, fast=args.fast)
+    save_test_result(args, log_dir, scores, records)
 
-    # save the result
+
+def save_test_result(args, log_dir, scores, records):
+    # save the result as pkl and json
+    pkl_data_path = os.path.join(log_dir, 'records.pkl')
+    with open(pkl_data_path, 'wb') as fout:
+        pickle.dump(records, fout)
     with open(os.path.join(log_dir, 'records.json'), 'w', encoding='utf-8') as fr:
         fr.write(json.dumps(records, ensure_ascii=False, indent=4, default=beam2dict))
 
@@ -166,37 +178,7 @@ def work(args, cpm2_kwargs):
 def main():
     parser = argparse.ArgumentParser()
     # parser.add_argument('--ckpt', required=True)
-    # data param
-    parser.add_argument('--test', action="store_true")
-    parser.add_argument('--fast', action="store_true")
-    # parser.add_argument('--example_num', type=int, default=-1)
-    parser.add_argument('--example_num', type=int, default=20)
-    parser.add_argument('--alias_type', default='synonym',
-                        choices=['prefix_extend', 'prefix_reduce', 'suffix_extend', 'suffix_reduce',
-                                 'expansion', 'abbreviation', 'punctuation', 'synonym'])
-    parser.add_argument('--result_dir', default='/data/tsq/xlink/bd/purify/filter_english/pool_80/result')
-    parser.add_argument('--data_path',
-                        default='/data/tsq/xlink/bd/purify/filter_english/pool_80/has_alias_relation_record.pkl')
-
-    # Whether to use data
-    parser.add_argument('--learning', type=str, default='few_shot',
-                        choices=['zero_shot', 'few_shot'])
-    # few_shot
-    parser.add_argument('--extra_prompt', type=str, default='task_specific',
-                        choices=['task_specific', 'prefix_tuning'])
-    parser.add_argument('--task_specific_prompt_num', type=int, default=4)
-    parser.add_argument('--alias_table_num', type=int, default=4, help="how many  alias_tables will be sampled")
-    parser.add_argument('--task_definition', action="store_true")
-    parser.add_argument('--alias_example_strategy', type=str, default='random',
-                        choices=['random', 'cluster'])
-    parser.add_argument('--alias_data_source', type=str, default='support_pool',
-                        choices=['whole_dataset', 'support_pool'])
-    # re-rank
-    parser.add_argument('--rank_strategy', type=str, default='frequency',
-                        choices=['random', 'frequency', 'probability', 'prob_freq'])
-    parser.add_argument('--calculate_prob', type=str, default='softmax',
-                        choices=['origin', 'softmax'],
-                        help="how to transfer the logits of CPM2 to probability used in ranking")
+    parser = add_test_param(parser)
     parser = add_decode_param(parser)
     args = parser.parse_args()
     cpm2_kwargs = reduce_args(args)

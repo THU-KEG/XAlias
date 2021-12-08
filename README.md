@@ -361,23 +361,21 @@ We find a bug and has repaired it, but the bad news is that our experiment resul
 
 ## 3.3 reconstruct dataset
 
-rerank by freq:
+rerank by freq (has the line `text += value_string`):
 
 | pattern        | type          | avg_num | best_EM | best_True | Re_EM                                                        |
 | -------------- | ------------- | ------- | ------- | --------- | ------------------------------------------------------------ |
-| ['，即']       | prefix_extend |         |         |           | "hits@0": 11.0,  "hits@1": 17.5,    "hits@2": 21.0,    "hits@3": 22.0,    "hits@4": 22.0,    "hits@5": 22.5, |
-| ['，简称']     | prefix_reduce |         |         |           | "hits@0": 58.5,    "hits@1": 71.5,    "hits@2": 76.5,    "hits@3": 81.0,    "hits@4": 82.0,    "hits@5": 83.5, |
-| ['，即']       | suffix_extend |         |         |           | hits@0": 6.59,    "hits@1": 17.0,    "hits@2": 20.9,    "hits@3": 24.7,    "hits@4": 26.4,    "hits@5": 28.6, |
-| ['，简称']     | suffix_reduce |         |         |           | "hits@0": 72.5,    "hits@1": 81.5,    "hits@2": 85.0,    "hits@3": 88.5,    "hits@4": 89.5,    "hits@5": 93.0, |
-| ['，即']       | expansion     |         |         |           | "hits@0": 11.5,    "hits@1": 16.0,    "hits@2": 16.5,    "hits@3": 18.0,    "hits@4": 18.5,    "hits@5": 19.5, |
-| ['，简称']     | abbreviation  |         |         |           | "hits@0": 17.5,    "hits@1": 27.0,    "hits@2": 32.0,    "hits@3": 32.5,    "hits@4": 35.0,    "hits@5": 38.5, |
-| ['的同义词是'] | synonym       |         |         |           | "hits@0": 3.0,    "hits@1": 3.5,    "hits@2": 4.5,    "hits@3": 5.5,    "hits@4": 7.0,    "hits@5": 7.5, |
-| ['的别名是']   | punctuation   |         |         |           | "hits@0": 60.0,    "hits@1": 73.5,    "hits@2": 76.2,    "hits@3": 78.4,    "hits@4": 78.9,    "hits@5": 81.1, |
+| ['，即']       | suffix_extend | 165.115 | 0.088   | 0.456     | hits@0": 0,    "hits@1": 0.0,    "hits@2": 0.55,    "hits@3": 0.55,    "hits@4": 0.55,    "hits@5": 0.55, |
+| ['，简称']     | suffix_reduce | 367.21  | 0.845   | 0.985     | "hits@0": 1.0,    "hits@1": 13.5,    "hits@2": 23.5,    "hits@3": 30.5,    "hits@4": 37.5,    "hits@5": 42.0, |
+| ['，即']       | expansion     | 246.23  | 0.06    | 0.35      | "hits@0": 0.0,    "hits@1": 0.0,    "hits@2": 0.0,    "hits@3": 0.0,    "hits@4": 0.0,    "hits@5": 0.0, |
+| ['，简称']     | abbreviation  | 423.255 | 0.31    | 0.74      | "hits@0": 0.5,    "hits@1": 2.0,    "hits@2": 2.0,    "hits@3": 2.0,    "hits@4": 2.0,    "hits@5": 2.5, |
+| ['的同义词是'] | synonym       | 212.44  | 0.025   | 0.265     | "hits@0": 3.0,    "hits@1": 3.5,    "hits@2": 4.5,    "hits@3": 5.5,    "hits@4": 7.0,    "hits@5": 7.5, |
+| ['的别名是']   | punctuation   | 228.27  | 0.0486  | 0.94      | "hits@0": 0.0,    "hits@1": 0.0,    "hits@2": 0.54,    "hits@3": 0.54,    "hits@4": 0.54,    "hits@5": 0.54, |
 
 different rerank strategies for abbreviation:
 
-| cal_prob | strategy    | avg_num | best_EM | best_True | Re_EM                                                        |
-| -------- | ----------- | ------- | ------- | --------- | ------------------------------------------------------------ |
-| softmax  | frequency   |         |         |           | "hits@0": 11.0,  "hits@1": 17.5,    "hits@2": 21.0,    "hits@3": 22.0,    "hits@4": 22.0,    "hits@5": 22.5, |
-| softmax  | probability |         |         |           |                                                              |
-| softmax  | prob_freq   |         |         |           | "hits@0": 58.5,    "hits@1": 71.5,    "hits@2": 76.5,    "hits@3": 81.0,    "hits@4": 82.0,    "hits@5": 83.5, |
+| cal_prob      | strategy    | avg_num | best_EM | best_True | Re_EM                                                        |
+| ------------- | ----------- | ------- | ------- | --------- | ------------------------------------------------------------ |
+| softmax(htvs) | frequency   | 423.255 | 0.31    | 0.74      | "hits@0": 0.5,    "hits@1": 2.0,    "hits@2": 2.0,    "hits@3": 2.0,    "hits@4": 2.0,    "hits@5": 2.5, |
+| softmax       | probability |         |         |           |                                                              |
+| softmax       | prob_freq   |         |         |           | "hits@0": 58.5,    "hits@1": 71.5,    "hits@2": 76.5,    "hits@3": 81.0,    "hits@4": 82.0,    "hits@5": 83.5, |

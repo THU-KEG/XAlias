@@ -89,6 +89,9 @@ class Verbalizer(object):
             if v is not None:
                 self.signal_args[k] = v
 
+    def set_for_rerank(self, args: argparse.ArgumentParser):
+        self.args = args
+
     def cpm2_beam_search(self, text):
         result_strings = beam_search(self.model, text, **self.kwargs)
         return result_strings
@@ -113,7 +116,7 @@ class Verbalizer(object):
             else:
                 result_beam = value
             total_len += len(value_string)
-            text += value_string
+            # text += value_string
 
         return result_beam
 
@@ -254,6 +257,14 @@ class Verbalizer(object):
             freq_beams.sort(key=lambda b: b.avg_weighted_freq, reverse=True)
             ranked_strings = [b.tokens for b in freq_beams]
         return ranked_strings
+
+    def rerank(self, pattern2beams):
+        # process and truncate
+        final_pattern2strings = []
+        for beams in pattern2beams:
+            pure_strings = self.process(beams)
+            final_pattern2strings.append(pure_strings[:self.args.num_return_sequences])
+        return final_pattern2strings
 
 
 """
