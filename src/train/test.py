@@ -62,6 +62,7 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
                 record['alias_table'] = alias_tables
             records.append(record)
     except RuntimeError:
+        # stop iteration raised by data
         pass
     return score, records
 

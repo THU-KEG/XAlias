@@ -83,21 +83,24 @@ def add_decode_param(parser: argparse.ArgumentParser):
     parser.add_argument('--frequency_penalty', type=float, default=0)
     parser.add_argument('--presence_penalty', type=float, default=0)
     # how to process the generated strings
-    parser.add_argument('--redundancy_strategy', type=str, default=None, choices=[None, 'overlap'])
+    parser.add_argument('--redundancy_strategy', type=str, default='overlap', choices=[None, 'overlap'])
     parser.add_argument('--max_overlap_scale', type=float, default=1,
                         help="str whose len(overlap with prev_str) * mos >= len(str) will be removed")
-    parser.add_argument('--punctuation_strategy', type=str, default=None, choices=[None, 'lazy', 'all'])
+    parser.add_argument('--punctuation_strategy', type=str, default='lazy', choices=[None, 'lazy', 'all'])
     # generate task params
-    parser.add_argument('--max_tokens', type=int, default=16)
-    parser.add_argument('--max_tokens_scale', type=float, default=None,
+    parser.add_argument('--max_tokens', type=int, default=2)
+    parser.add_argument('--max_tokens_scale', type=float, default=2,
                         help='the mt will be mts * len(sw) or len(sw) / mts')
     # sample
     parser.add_argument('--top_n_range', type=int, default=4,
                         help='the top_n will be [top_n-top_n_range, top_n+top_n_range]')
+    parser.add_argument('--cpm2_concat_value_string', type=str, default='concat',
+                        choices=[None, 'concat'],
+                        help='When decoded text is short, whether to concat generated text with src_word as input')
     # beam search
     parser.add_argument('--num_beams', type=int, default=None)
-    parser.add_argument('--num_return_sequences', type=int, default=2)
-    parser.add_argument('--num_generate_sequences', type=int, default=2)
+    parser.add_argument('--num_return_sequences', type=int, default=500)
+    parser.add_argument('--num_generate_sequences', type=int, default=256)
     return parser
 
 

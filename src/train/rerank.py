@@ -22,24 +22,33 @@ def validate(old_records, verbalizer, args, log_dir):
         data = AliasDataset(args.data_path, args.alias_type, 'valid', exp_num=args.example_num)
     score = {'EM': [], 'True': []}
     records = []
-    for batch_iter, batch in tqdm(enumerate(data.gen_batch()), desc="Validating", total=data.example_num):
-        if args.fast and batch_iter % 10 != 0:
-            continue
-        src_word, tgt_words = batch
-        old_record = old_records[batch_iter]
-        # re-rank here
-        pred_words = verbalizer.rerank(old_record['beams'])
-        # None because we have record it before, so we can save some space
-        pattern2beams = None
-        golden = ' '.join(tgt_words)
-        pred = ' '.join([i for arr in pred_words for i in arr])
+    try:
+        for batch_iter, batch in tqdm(enumerate(data.gen_batch()), desc="Ranking", total=len(old_records)):
+            if args.fast and batch_iter % 10 != 0:
+                continue
+            src_word, tgt_words = batch
+            # fast or not
+            if args.fast:
+                idx = batch_iter // 10
+            else:
+                idx = batch_iter
+            old_record = old_records[idx]
+            # re-rank here
+            pred_words = verbalizer.rerank(old_record['beams'])
+            # None because we have record it before, so we can save some space
+            pattern2beams = None
+            golden = ' '.join(tgt_words)
+            pred = ' '.join([i for arr in pred_words for i in arr])
 
-        # record the result
-        score, record = record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, golden, pred,
-                                      pattern2beams, batch_iter)
-        if args.extra_prompt == 'task_specific':
-            record['alias_table'] = old_record['alias_table']
-        records.append(record)
+            # record the result
+            score, record = record_result(score, src_word, tgt_words, pred_words, ref_dir, sum_dir, golden, pred,
+                                          pattern2beams, batch_iter)
+            if args.extra_prompt == 'task_specific':
+                record['alias_table'] = old_record['alias_table']
+            records.append(record)
+    except RuntimeError:
+        # stop iteration raised by data
+        pass
     return score, records
 
 
@@ -47,7 +56,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--record_dir', required=True)
     parser = add_decode_param(parser)
-    parser = add_decode_param(parser)
+    parser = add_test_param(parser)
     args = parser.parse_args()
     verbalizer = Verbalizer(args.language, args.task)
     verbalizer.set_for_rerank(args)

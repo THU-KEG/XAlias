@@ -116,7 +116,8 @@ class Verbalizer(object):
             else:
                 result_beam = value
             total_len += len(value_string)
-            # text += value_string
+            if self.args.cpm2_concat_value_string == 'concat':
+                text += value_string
 
         return result_beam
 
@@ -161,7 +162,8 @@ class Verbalizer(object):
                                         self.kwargs['top_n'] = self.args.top_n - self.signal_args[
                                             'top_n_range'] + tnr_order
                                     # generate with new kwargs
-                                    beams.append(self.cpm2_sample(input_text))
+                                    new_beam = self.cpm2_sample(input_text)
+                                    beams.append(new_beam)
                             else:
                                 # only change seed
                                 beams.append(self.cpm2_sample(input_text))

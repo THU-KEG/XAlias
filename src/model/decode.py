@@ -210,7 +210,7 @@ def generate_return_beam(model: bminf.models.CPM2,
         if decoder_ipts in stop_tokens:
             stoped = True
             break
-        blanks.append(decoder_ipts)
+        # blanks.append(decoder_ipts) # this bug puzzled me for 3 days !!!
         token_prob = logit_calculate_prob(logits, decoder_ipts, calculate_prob)
         beam = beam.extend(decoder_ipts, token_prob, context=None)
     # convert id to strings

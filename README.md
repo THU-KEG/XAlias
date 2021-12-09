@@ -363,19 +363,38 @@ We find a bug and has repaired it, but the bad news is that our experiment resul
 
 rerank by freq (has the line `text += value_string`):
 
-| pattern        | type          | avg_num | best_EM | best_True | Re_EM                                                        |
-| -------------- | ------------- | ------- | ------- | --------- | ------------------------------------------------------------ |
-| ['，即']       | suffix_extend | 165.115 | 0.088   | 0.456     | hits@0": 0,    "hits@1": 0.0,    "hits@2": 0.55,    "hits@3": 0.55,    "hits@4": 0.55,    "hits@5": 0.55, |
-| ['，简称']     | suffix_reduce | 367.21  | 0.845   | 0.985     | "hits@0": 1.0,    "hits@1": 13.5,    "hits@2": 23.5,    "hits@3": 30.5,    "hits@4": 37.5,    "hits@5": 42.0, |
-| ['，即']       | expansion     | 246.23  | 0.06    | 0.35      | "hits@0": 0.0,    "hits@1": 0.0,    "hits@2": 0.0,    "hits@3": 0.0,    "hits@4": 0.0,    "hits@5": 0.0, |
-| ['，简称']     | abbreviation  | 423.255 | 0.31    | 0.74      | "hits@0": 0.5,    "hits@1": 2.0,    "hits@2": 2.0,    "hits@3": 2.0,    "hits@4": 2.0,    "hits@5": 2.5, |
-| ['的同义词是'] | synonym       | 212.44  | 0.025   | 0.265     | "hits@0": 3.0,    "hits@1": 3.5,    "hits@2": 4.5,    "hits@3": 5.5,    "hits@4": 7.0,    "hits@5": 7.5, |
-| ['的别名是']   | punctuation   | 228.27  | 0.0486  | 0.94      | "hits@0": 0.0,    "hits@1": 0.0,    "hits@2": 0.54,    "hits@3": 0.54,    "hits@4": 0.54,    "hits@5": 0.54, |
+| pattern        | type         | avg_num | best_EM | best_True | Re_EM                                                        |
+| -------------- | ------------ | ------- | ------- | --------- | ------------------------------------------------------------ |
+| ['的同义词是'] | synonym      | 298.015 | 0.23    | 0.255     | "hits@0": 3.0,  "hits@1": 4.0,    "hits@2": 4.0,    "hits@3": 6.0,    "hits@4": 7.5,    "hits@5": 8.5, |
+| ['，简称']     | abbreviation | 449.115 | 0.715   | 0.745     | "hits@0": 17.5,    "hits@1": 28.0,    "hits@2": 33.0,    "hits@3": 35.5,    "hits@4": 38.0,   "hits@5": 40.0, |
+
+rerank by freq (not has the line `text += value_string`):
+
+| pattern        | type         | avg_num | best_EM | best_True | Re_EM                                                        |
+| -------------- | ------------ | ------- | ------- | --------- | ------------------------------------------------------------ |
+| ['，即']       | expansion    | 281.715 | 0.345   | 0.36      | "hits@0": 11.0,    "hits@1": 16.0,    "hits@2": 16.5,    "hits@3": 18.5,    "hits@4": 18.5,    "hits@5": 20.0, |
+| ['，简称']     | abbreviation | 443.725 | 0.71    | 0.74      | "hits@0": 18.0,    "hits@1": 27.0,    "hits@2": 32.0,    "hits@3": 34.0,    "hits@4": 37.0,    "hits@5": 39.0, |
+| ['的同义词是'] | synonym      | 281.135 | 0.215   | 0.26      | "hits@0": 2.5,    "hits@1": 3.5,    "hits@2": 4.0,    "hits@3": 5.0,    "hits@4": 6.5,    "hits@5": 7.5, |
+| ['的别名是']   | punctuation  | 265.811 | 0.919   | 0.94      | "hits@0": 59.5,    "hits@1": 74.6,    "hits@2": 77.3,    "hits@3": 79.46,    "hits@4": 80.0,    "hits@5": 81.6, |
+
+- The difference of having the line `text += value_string` or not is marginal.
 
 different rerank strategies for abbreviation:
 
-| cal_prob      | strategy    | avg_num | best_EM | best_True | Re_EM                                                        |
-| ------------- | ----------- | ------- | ------- | --------- | ------------------------------------------------------------ |
-| softmax(htvs) | frequency   | 423.255 | 0.31    | 0.74      | "hits@0": 0.5,    "hits@1": 2.0,    "hits@2": 2.0,    "hits@3": 2.0,    "hits@4": 2.0,    "hits@5": 2.5, |
-| softmax       | probability |         |         |           |                                                              |
-| softmax       | prob_freq   |         |         |           | "hits@0": 58.5,    "hits@1": 71.5,    "hits@2": 76.5,    "hits@3": 81.0,    "hits@4": 82.0,    "hits@5": 83.5, |
+(cpm2_concat_value_string: concat)
+
+| cal_prob | strategy    | avg_num | best_EM | best_True | Re_EM                                                        |
+| -------- | ----------- | ------- | ------- | --------- | ------------------------------------------------------------ |
+| softmax  | frequency   | 449.115 | 0.715   | 0.745     | "hits@0": 17.5,    "hits@1": 28.0,    "hits@2": 33.0,    "hits@3": 35.5,    "hits@4": 38.0,   "hits@5": 40.0, |
+| softmax  | probability | 449.115 | 0.705   | 0.75      | "hits@0": 0.0,    "hits@1": 0.5,    "hits@2": 2.0,    "hits@3": 2.0,    "hits@4": 3.0,   "hits@5": 4.0, |
+| softmax  | prob_freq   | 449.115 | 0.715   | 0.745     | "hits@0": 13.5,    "hits@1": 21.5,    "hits@2": 27.5,    "hits@3": 30.5,    "hits@4": 35.0,    "hits@5": 36.5, |
+
+different rerank strategies for synonym:
+
+(cpm2_concat_value_string: concat)
+
+| cal_prob | strategy    | avg_num | best_EM | best_True | Re_EM                                                        |
+| -------- | ----------- | ------- | ------- | --------- | ------------------------------------------------------------ |
+| softmax  | frequency   | 298.015 | 0.23    | 0.255     | "hits@0": 3.0,  "hits@1": 4.0,    "hits@2": 4.0,    "hits@3": 6.0,    "hits@4": 7.5,    "hits@5": 8.5, |
+| softmax  | probability | 298.015 | 0.225   | 0.255     | "hits@0": 0.0,  "hits@1": 1.0,    "hits@2": 1.5,    "hits@3": 2.5,    "hits@4": 2.5,    "hits@5": 3.0, |
+| softmax  | prob_freq   | 298.015 | 0.23    | 0.255     | "hits@0": **3.5**,  "hits@1": 3.5,    "hits@2": 3.5,    "hits@3": **6.5**,    "hits@4": 7.5,    "hits@5": 8.0, |
