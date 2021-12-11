@@ -17,6 +17,8 @@ class Beam(object):
         self.tokens = tokens
         self.log_probs = log_probs
         self.context = context
+        # if we use len(self.tokens), when it is transformed into str, the length will loss Fidelity for log_prob
+        self.token_num = 0
 
     def __repr__(self):
         return "tokens:{}, probs:{}".format(self.tokens, self.log_probs)
@@ -53,7 +55,8 @@ class Beam(object):
     def avg_weighted_freq(self):
         if len(self.tokens) == 0:
             return 1e-6
-        weight = sum(self.log_probs) / len(self.tokens)
+        # weight = sum(self.log_probs) / len(self.tokens)
+        weight = sum(self.log_probs) / self.token_num
         return weight * self.context
 
     @property
@@ -64,7 +67,17 @@ class Beam(object):
     def avg_log_prob(self):
         if len(self.tokens) == 0:
             return 1e-6
-        return sum(self.log_probs) / len(self.tokens)
+        # return sum(self.log_probs) / len(self.tokens)
+        return sum(self.log_probs) / self.token_num
+
+    @property
+    def log_freq_add_prob(self, lamda=0.5):
+        if len(self.tokens) == 0:
+            return 1e-6
+        weight_prob = sum(self.log_probs)
+        weight_freq = np.log(self.context)
+        combined_weight = lamda * weight_freq + (1 - lamda) * weight_prob
+        return combined_weight
 
 
 def beam2dict(beam: Beam):
@@ -211,21 +224,22 @@ def generate_return_beam(model: bminf.models.CPM2,
             stoped = True
             break
         # blanks.append(decoder_ipts) # this bug puzzled me for 3 days !!!
-        token_prob = logit_calculate_prob(logits, decoder_ipts, calculate_prob)
+        logit = cupy.asnumpy(logits)[decoder_ipts]
+        token_prob = logit.astype(np.float32)
         beam = beam.extend(decoder_ipts, token_prob, context=None)
-    # convert id to strings
+    # convert id to strings and save token_num
+    beam.token_num = len(beam.tokens)
     beam.tokens = model.id_to_text(beam.tokens)
     return beam, stoped
 
-
-def logit_calculate_prob(logits, decoder_ipts, calculate_prob):
-    if calculate_prob == 'softmax':
-        logits -= logits.max()
-        logits = cupy.exp(logits)
-        logits /= logits.sum()
-        cpu_probs = cupy.asnumpy(logits).astype(np.float32)
-        return cpu_probs[decoder_ipts]
-    else:
-        # origin
-        logit = cupy.asnumpy(logits)[decoder_ipts]
-        return logit.astype(np.float32)
+# def logit_calculate_prob(logits, decoder_ipts, calculate_prob):
+#     if calculate_prob == 'softmax':
+#         logits -= logits.max()
+#         logits = cupy.exp(logits)
+#         logits /= logits.sum()
+#         cpu_probs = cupy.asnumpy(logits).astype(np.float32)
+#         return cpu_probs[decoder_ipts]
+#     else:
+#         # origin
+#         logit = cupy.asnumpy(logits)[decoder_ipts]
+#         return logit.astype(np.float32)

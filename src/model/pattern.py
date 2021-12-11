@@ -256,7 +256,7 @@ class Verbalizer(object):
                     str2beam_index[string] = len(freq_beams)
                     beam.set_freq(init=True)
                     freq_beams.append(beam)
-            freq_beams.sort(key=lambda b: b.avg_weighted_freq, reverse=True)
+            freq_beams.sort(key=lambda b: b.log_freq_add_prob, reverse=True)
             ranked_strings = [b.tokens for b in freq_beams]
         return ranked_strings
 
