@@ -108,7 +108,6 @@ def add_test_param(parser: argparse.ArgumentParser):
     # data param
     parser.add_argument('--test', action="store_true")
     parser.add_argument('--fast', action="store_true")
-    # parser.add_argument('--example_num', type=int, default=-1)
     parser.add_argument('--example_num', type=int, default=20)
     parser.add_argument('--alias_type', default='synonym',
                         choices=['prefix_extend', 'prefix_reduce', 'suffix_extend', 'suffix_reduce',
@@ -133,9 +132,10 @@ def add_test_param(parser: argparse.ArgumentParser):
     # re-rank
     parser.add_argument('--rank_strategy', type=str, default='frequency',
                         choices=['random', 'frequency', 'probability', 'prob_freq'])
-    parser.add_argument('--calculate_prob', type=str, default='softmax',
-                        choices=['origin', 'softmax'],
-                        help="how to transfer the logits of CPM2 to probability used in ranking")
+    parser.add_argument('--freq_portion', type=float, default=0.5, help="how many portion will frequency has in weight")
+    # parser.add_argument('--calculate_prob', type=str, default='origin',
+    #                     choices=['origin', 'softmax'],
+    #                     help="how to transfer the logits of CPM2 to probability used in ranking")
     return parser
 
 

@@ -185,7 +185,6 @@ def beam_search(model: bminf.models.CPM2,
 
 
 def generate_return_beam(model: bminf.models.CPM2,
-                         calculate_prob: str,
                          input_sentence: str,
                          max_tokens: int = 128,
                          top_n: Optional[int] = None,
