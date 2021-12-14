@@ -48,10 +48,18 @@ python -m src.data.statistic --task num_return_sequences --at_result_dir xx
 
 ## purify
 
-We can filter some data by checking if they contain none chinese / english character.
+We can filter some data by checking if they contain none Chinese / English character.
 
 ```
 python -m src.data.purify --task filter_english --stop_words pool
+```
+
+## extra_info
+
+We can import extra information like `info box` of an entity. But we need to check whether these attributes contain answer which may cause leak.
+
+```
+python -m src.data.extra_info 
 ```
 
 
