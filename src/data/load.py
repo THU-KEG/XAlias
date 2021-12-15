@@ -25,7 +25,7 @@ class AliasDataset:
             self.example_num = exp_num
         self.pure_data = self.pure_data[:self.example_num]
 
-    def gen_batch(self, required_index=None):
+    def gen_batch(self, required_index=False):
 
         all_examples = self.pure_data
         if self.shuffle:
@@ -34,8 +34,11 @@ class AliasDataset:
         for pure_data in all_examples:
             _src_word = pure_data.src_word
             _tgt_words = pure_data.tgt_words
-
-            yield _src_word, _tgt_words
+            if required_index:
+                _entity_id = pure_data.entity_id,
+                yield _entity_id, _src_word, _tgt_words
+            else:
+                yield _src_word, _tgt_words
 
         raise StopIteration
 
