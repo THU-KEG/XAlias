@@ -35,7 +35,7 @@ class AliasDataset:
             _src_word = pure_data.src_word
             _tgt_words = pure_data.tgt_words
             if required_index:
-                _entity_id = pure_data.entity_id,
+                _entity_id = pure_data.entity_id
                 yield _entity_id, _src_word, _tgt_words
             else:
                 yield _src_word, _tgt_words

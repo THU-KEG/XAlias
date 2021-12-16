@@ -49,10 +49,12 @@ def validate(old_records, verbalizer, args, log_dir):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--record_dir', required=True)
+    # parser.add_argument('--record_dir', required=True)
+    parser.add_argument('--record_dir',
+                        default='/data/tsq/xlink/bd/purify/filter_english/pool_80/result/abbreviation/few_shot/task_specific/time_12140900')
     # grid search
     parser.add_argument('--interval', type=float, default=0.1, help="the interval used in grid search for lambda")
-    parser.add_argument('--range', default=[0, 1], nargs='+', help="the range used in grid search for lambda")
+    parser.add_argument('--range', default=[0, 2], nargs='+', help="the range used in grid search for lambda")
     parser = add_decode_param(parser)
     parser = add_test_param(parser)
     args = parser.parse_args()
@@ -61,26 +63,29 @@ def main():
     record_json_path = os.path.join(args.record_dir, 'records.pkl')
 
     with open(record_json_path, 'rb') as fin:
-        records = pickle.load(fin)
+        old_records = pickle.load(fin)
         if args.rank_strategy == 'prob_freq':
             # change lambda and grid search
             lower = args.range[0]
             upper = args.range[1]
-            for lamda in range(lower, upper, args.interval):
+            passes = int((upper - lower) / args.interval) + 1
+            print("pass", passes)
+            for _pass in range(passes):
+                lamda = lower + _pass * args.interval
                 args.freq_portion = lamda
                 # create directory for this lambda
                 reranked_dir = os.path.join(args.record_dir, 'rerank', args.rank_strategy,
                                             "lambda{}".format(str(lamda)))
                 if not os.path.exists(reranked_dir):
                     os.makedirs(reranked_dir)
-                scores, records = validate(records, verbalizer, args, reranked_dir)
+                scores, records = validate(old_records, verbalizer, args, reranked_dir)
                 save_test_result(args, reranked_dir, scores, records)
         else:
             # no grid search
             reranked_dir = os.path.join(args.record_dir, 'rerank', args.rank_strategy)
             if not os.path.exists(reranked_dir):
                 os.makedirs(reranked_dir)
-                scores, records = validate(records, verbalizer, args, reranked_dir)
+                scores, records = validate(old_records, verbalizer, args, reranked_dir)
                 save_test_result(args, reranked_dir, scores, records)
 
 

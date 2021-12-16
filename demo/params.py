@@ -130,7 +130,7 @@ def add_test_param(parser: argparse.ArgumentParser):
     parser.add_argument('--alias_data_source', type=str, default='support_pool',
                         choices=['whole_dataset', 'support_pool'])
     # re-rank
-    parser.add_argument('--rank_strategy', type=str, default='frequency',
+    parser.add_argument('--rank_strategy', type=str, default='prob_freq',
                         choices=['random', 'frequency', 'probability', 'prob_freq'])
     parser.add_argument('--freq_portion', type=float, default=0.5, help="how many portion will frequency has in weight")
     # parser.add_argument('--calculate_prob', type=str, default='origin',

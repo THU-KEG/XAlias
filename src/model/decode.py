@@ -70,14 +70,17 @@ class Beam(object):
         # return sum(self.log_probs) / len(self.tokens)
         return sum(self.log_probs) / self.token_num
 
-    @property
     def log_freq_add_prob(self, lamda=0.5):
         if len(self.tokens) == 0:
             return 1e-6
         weight_prob = sum(self.log_probs)
+        # print("self.log_probs", self.log_probs)
+        if self.context == 0:
+            return 1e-6
         weight_freq = np.log(self.context)
+        # print("weight_freq", weight_freq)
         combined_weight = lamda * weight_freq + (1 - lamda) * weight_prob
-        return combined_weight
+        return float(combined_weight)
 
 
 def beam2dict(beam: Beam):
