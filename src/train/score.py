@@ -7,19 +7,19 @@ from src.data.load import AliasDataset
 import bminf
 import time
 import cupy
-from typing import List, Tuple
+from typing import List, Dict
 from src.data.discover_alias import HasAlias
 from src.data.extra_info import InfoBox
 import numpy as np
-from demo.params import add_decode_param, reduce_args, add_test_param
+from demo.params import add_decode_param, add_rescore_param, add_test_param
 
 SPAN_TOKEN = "<span>"
 
 
 class Perplexity(object):
-    def __init__(self, tokens, logits, token_probs):
+    def __init__(self, tokens, token_probs):
         self.tokens = tokens
-        self.logits = logits
+        # self.soft_logits = soft_logits
         self.token_probs = token_probs
 
     @property
@@ -27,7 +27,9 @@ class Perplexity(object):
         score = 1
         for token_prob in self.token_probs:
             score *= token_prob
-        return score
+        N = len(self.token_probs)
+        _ppl = pow(score, -(1 / N))
+        return _ppl
 
 
 class ScoreVector(object):
@@ -45,22 +47,31 @@ class Scorer(object):
         self.args = args
         self.id2info_box = id2info_box
 
-    def rescore(self, old_record, ent_id):
+    def rescore(self, old_record, ent_id) -> Dict:
         score_vector_dict = {'src': None, 'pred': [], 'max_attribute_num': self.args.max_attribute_num}
         src_word = old_record['src_word']
-        pred_words = old_record['pred'][:self.args.candidate_num]
-
-        if self.args.score_kind == 'ppl':
-            # concat attribute with src and pred to compare their similarity
-            src_score = self.calc(src_word, ent_id)
-            score_vector_dict['src'] = src_score
-            for pred_word in tqdm(pred_words, total=len(pred_words)):
-                pred_score = self.calc(pred_word, ent_id)
-                score_vector_dict['pred'].append(pred_score)
+        # dimension 1 is the number of templates
+        template2pred_words = old_record['pred']
+        for _pred_words in template2pred_words:
+            pred_word2sv = []
+            pred_words = _pred_words[:self.args.candidate_num]
+            if self.args.score_kind == 'ppl':
+                # concat attribute with src and pred to compare their similarity
+                src_score = self.calc(src_word, ent_id)
+                score_vector_dict['src'] = src_score
+                # for pred_word in tqdm(pred_words, total=len(pred_words)):
+                for pred_word in pred_words:
+                    pred_score = self.calc(pred_word, ent_id)
+                    pred_word2sv.append(pred_score)
+            score_vector_dict['pred'].append(pred_word2sv)
         return score_vector_dict
 
-    def calc(self, word, ent_id):
-        info_box = self.id2info_box[ent_id]
+    def calc(self, word, ent_id) -> ScoreVector:
+        try:
+            info_box = self.id2info_box[ent_id]
+        except KeyError:
+            # This entity doesn't have info box
+            return ScoreVector([], [], [], [])
         attribute_dict = info_box.attribute_dict
         # fill pattern and sample some attributes
         pattern = ''
@@ -117,7 +128,7 @@ class Scorer(object):
             cpu_probs = cupy.asnumpy(logits).astype(np.float32)
             return cpu_probs
         else:
-            ppl = Perplexity([], [], [])
+            ppl = Perplexity([], [])
             tokens = self.model.text_to_id(input_sentence)
             token_num = len(tokens)
             # auto-regressive decoding
@@ -125,19 +136,20 @@ class Scorer(object):
                 # given i-1 tokens, predict token i
                 prefix_tokens = tokens[:i]
                 sequence = self.model.id_to_text(prefix_tokens)
-                logits = self.get_ppl(sequence, return_last_token_logits=True)
-                print(logits)
+                soft_logits = self.get_ppl(sequence, return_last_token_logits=True)
+                # print(soft_logits)
                 idx = tokens[i]
-                token_porb = logits[idx]
-                print(token_porb)
+                token_porb = soft_logits[idx]
+                # print(token_porb)
                 # record them
                 ppl.tokens.append(tokens[i])
-                ppl.logits.append(logits)
+                # soft_logits cost too much space
+                # ppl.soft_logits.append(soft_logits)
                 ppl.token_probs.append(token_porb)
             return ppl
 
 
-def score_all(old_records, args, model):
+def score_all(old_records, args, model) -> List:
     if args.test:
         data = AliasDataset(args.data_path, args.alias_type, 'test', exp_num=args.example_num)
     else:
@@ -148,7 +160,7 @@ def score_all(old_records, args, model):
     scorer = Scorer(model, args, id2info_box)
     try:
         for batch_iter, batch in tqdm(enumerate(data.gen_batch(required_index=True)), desc="Scoring",
-                                      total=len(old_records)):
+                                      total=data.example_num):
             if args.fast and batch_iter % 10 != 0:
                 continue
             ent_id, src_word, _ = batch
@@ -174,16 +186,8 @@ def main():
     # parser.add_argument('--record_dir', required=True)
     parser.add_argument('--record_dir',
                         default='/data/tsq/xlink/bd/purify/filter_english/pool_80/result/synonym/few_shot/task_specific/time_12140900')
-    parser.add_argument('--candidate_num', type=int, default=20)
-    # ppl score
-    parser.add_argument('--score_kind', type=str, default='ppl', help="the kind of score")
-    parser.add_argument('--max_attribute_num', type=int, default=2)
-    # info box
-    parser.add_argument('--concat_way', type=str, default='distributed', choices=['distributed', 'string'],
-                        help="how to concat different attribute")
-    parser.add_argument('--attribute_value', type=str, default='use', choices=['use', 'ignore'],
-                        help="how to concat different attribute")
     parser.add_argument('--info_box_path', type=str, default='/data/tsq/xlink/bd/id2info_box.pkl')
+    parser = add_rescore_param(parser)
     parser = add_decode_param(parser)
     parser = add_test_param(parser)
     args = parser.parse_args()

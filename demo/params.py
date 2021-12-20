@@ -104,6 +104,19 @@ def add_decode_param(parser: argparse.ArgumentParser):
     return parser
 
 
+def add_rescore_param(parser: argparse.ArgumentParser):
+    parser.add_argument('--candidate_num', type=int, default=20)
+    # ppl score
+    parser.add_argument('--score_kind', type=str, default='ppl', help="the kind of score")
+    parser.add_argument('--max_attribute_num', type=int, default=2)
+    # info box
+    parser.add_argument('--concat_way', type=str, default='distributed', choices=['distributed', 'string'],
+                        help="how to concat different attribute")
+    parser.add_argument('--attribute_value', type=str, default='use', choices=['use', 'ignore'],
+                        help="how to concat different attribute")
+    return parser
+
+
 def add_test_param(parser: argparse.ArgumentParser):
     # data param
     parser.add_argument('--test', action="store_true")
@@ -131,7 +144,7 @@ def add_test_param(parser: argparse.ArgumentParser):
                         choices=['whole_dataset', 'support_pool'])
     # re-rank
     parser.add_argument('--rank_strategy', type=str, default='prob_freq',
-                        choices=['random', 'frequency', 'probability', 'prob_freq'])
+                        choices=['random', 'frequency', 'probability', 'prob_freq', 'ppl'])
     parser.add_argument('--freq_portion', type=float, default=0.5, help="how many portion will frequency has in weight")
     # parser.add_argument('--calculate_prob', type=str, default='origin',
     #                     choices=['origin', 'softmax'],

@@ -172,6 +172,8 @@ def save_test_result(args, log_dir, scores, records):
         avg_predict_nums = get_avg_generate_nums(records)
         f.write("avg predict_word_num for each pattern:{}\n".format(avg_predict_nums))
         f.write("avg_num:{}\n".format(sum(avg_predict_nums) / len(avg_predict_nums)))
+        with open(os.path.join(log_dir, 'hits.json'), 'w', encoding='utf-8') as f_hits:
+            f_hits.write(json.dumps(hits, ensure_ascii=False, indent=4))
     # vis = vis_scores(scores)
     # print(vis)
 

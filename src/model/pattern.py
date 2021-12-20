@@ -267,6 +267,43 @@ class Verbalizer(object):
             final_pattern2strings.append(pure_strings[:self.args.num_return_sequences])
         return final_pattern2strings
 
+    def rerank_stings(self, old_pred_words, pred_word2sv):
+        score_strings = []
+        # only top_k in old_pred_words will participate in re-ranking
+        top_k = len(pred_word2sv)
+        assert top_k <= len(old_pred_words)
+        participate_old_pred_words = old_pred_words[:top_k]
+        unparticipate_old_pred_words = old_pred_words[top_k:]
+        for i, old_pred_word in enumerate(participate_old_pred_words):
+            dic = {'word': old_pred_word, 'score': 0}
+            # assign each word with a score
+            score_vec = pred_word2sv[i]
+            score = 0
+            if self.args.concat_way == 'string':
+                if self.args.attribute_value == 'use':
+                    # only one ppl
+                    perplexity = score_vec.ppls[0]
+                    score = perplexity.ppl
+                else:
+                    raise ValueError()
+            else:
+                # do not use value, we will compare similarity between src and pred
+                if self.args.attribute_value == 'use':
+                    # each word has m score
+                    pass
+                else:
+                    pass
+            dic['score'] = score
+            score_strings.append(dic)
+        # rank by score
+        if self.args.score_kind == 'ppl':
+            score_strings.sort(key=lambda b: b['score'], reverse=False)
+        else:
+            score_strings.sort(key=lambda b: b['score'], reverse=True)
+        pure_strings = [s['word'] for s in score_strings] + unparticipate_old_pred_words
+        final_strings = pure_strings[:self.args.num_return_sequences]
+        return final_strings
+
 
 """
     def cpm2_sample(self, text):
