@@ -5,6 +5,7 @@ import time
 from tqdm import tqdm
 from src.data.load import AliasDataset
 from src.data.discover_alias import HasAlias
+from src.train.score import ScoreVector, Perplexity
 from src.model.pattern import Verbalizer
 from src.train.test import init_log_sub_dirs, record_result, save_test_result
 from demo.params import add_decode_param, add_rescore_param, add_test_param
@@ -18,6 +19,7 @@ def validate(old_records, verbalizer, args, log_dir):
         data = AliasDataset(args.data_path, args.alias_type, 'valid', exp_num=args.example_num)
     score = {'EM': [], 'True': []}
     records = []
+    string_scores = []
     try:
         for batch_iter, batch in tqdm(enumerate(data.gen_batch()), desc="Ranking", total=data.example_num):
             if args.fast and batch_iter % 10 != 0:
@@ -34,11 +36,17 @@ def validate(old_records, verbalizer, args, log_dir):
                 # dimension 1 is the number of templates
                 template2pred_words = old_record['pred']
                 pred_words = []
+                template2string_score_dicts = []
                 for j, old_pred_words in enumerate(template2pred_words):
                     pred_word2sv = score_vector_dict['pred'][j]
                     candidate_num = len(pred_word2sv)
-                    reranked_words = verbalizer.rerank_stings(old_pred_words[:candidate_num], pred_word2sv)
+                    reranked_words, score_strings = verbalizer.rerank_stings_with_info_box(score_vector_dict['src'],
+                                                                                           old_pred_words[
+                                                                                           :candidate_num],
+                                                                                           pred_word2sv)
                     pred_words.append(reranked_words)
+                    template2string_score_dicts.append(score_strings)
+                string_scores.append(template2string_score_dicts)
             else:
                 old_record = old_records[idx]
                 # re-rank here with original features like frequency
@@ -57,7 +65,7 @@ def validate(old_records, verbalizer, args, log_dir):
     except RuntimeError:
         # stop iteration raised by data
         pass
-    return score, records
+    return score, records, string_scores
 
 
 def main():
@@ -71,13 +79,25 @@ def main():
     # grid search
     parser.add_argument('--interval', type=float, default=0.1, help="the interval used in grid search for lambda")
     parser.add_argument('--range', default=[0, 2], nargs='+', help="the range used in grid search for lambda")
+
+    # rerank by ppl
+    parser.add_argument('--vector_squeeze_strategy', type=str, default='avg',
+                        choices=['avg', 'min'], help="how to get_score_from_vector")
+    parser.add_argument('--similarity_vector_dimension', type=str, default='m',
+                        choices=['m', 'mxd'], help="similarity vector dimension, d is 30000")
+    parser.add_argument('--vector_similarity', type=str, default='m',
+                        choices=['cosine', 'euclid'], help="the type of similarity")
     parser = add_rescore_param(parser)
     parser = add_decode_param(parser)
     parser = add_test_param(parser)
     args = parser.parse_args()
     verbalizer = Verbalizer(args.language, args.task)
     verbalizer.set_for_rerank(args)
-    record_json_path = os.path.join(args.record_dir, '{}.pkl'.format(args.record_type))
+    if args.record_type == 'records':
+        record_json_path = os.path.join(args.record_dir, '{}.pkl'.format(args.record_type))
+    else:
+        # re score
+        record_json_path = os.path.join(args.record_dir, '{}.pkl'.format(args.score_kind))
 
     with open(record_json_path, 'rb') as fin:
         old_records = pickle.load(fin)
@@ -95,7 +115,7 @@ def main():
                                             "lambda{}".format(str(lamda)))
                 if not os.path.exists(reranked_dir):
                     os.makedirs(reranked_dir)
-                scores, records = validate(old_records, verbalizer, args, reranked_dir)
+                scores, records, string_scores = validate(old_records, verbalizer, args, reranked_dir)
                 save_test_result(args, reranked_dir, scores, records)
         else:
             # no grid search
@@ -103,11 +123,16 @@ def main():
                                         "time_" + time.strftime("%m%d%H%M"))
             if not os.path.exists(reranked_dir):
                 os.makedirs(reranked_dir)
-            scores, records = validate(old_records, verbalizer, args, reranked_dir)
+            scores, records, string_scores = validate(old_records, verbalizer, args, reranked_dir)
             save_test_result(args, reranked_dir, scores, records)
             with open(os.path.join(reranked_dir, 'args.txt'), 'w', encoding='utf-8') as f:
                 for k, v in args.__dict__.items():
                     f.write('%s: %s\n' % (k, str(v)))
+
+            string_scores_path = os.path.join(reranked_dir, 'string_scores.pkl')
+            with open(string_scores_path, 'wb') as fout:
+                pickle.dump(string_scores, fout)
+                print("[2]Save {}".format(string_scores_path))
 
 
 if __name__ == "__main__":

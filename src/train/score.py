@@ -25,6 +25,8 @@ class Perplexity(object):
     @property
     def ppl(self):
         score = 1
+        if len(self.token_probs) == 0:
+            return 1e5
         for token_prob in self.token_probs:
             score *= token_prob
         N = len(self.token_probs)

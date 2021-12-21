@@ -267,8 +267,11 @@ class Verbalizer(object):
             final_pattern2strings.append(pure_strings[:self.args.num_return_sequences])
         return final_pattern2strings
 
-    def rerank_stings(self, old_pred_words, pred_word2sv):
+    def rerank_stings_with_info_box(self, src_sv, old_pred_words, pred_word2sv):
         score_strings = []
+        # check whether the entity has info box
+        if not src_sv.attributes:
+            return old_pred_words, score_strings
         # only top_k in old_pred_words will participate in re-ranking
         top_k = len(pred_word2sv)
         assert top_k <= len(old_pred_words)
@@ -277,12 +280,11 @@ class Verbalizer(object):
         for i, old_pred_word in enumerate(participate_old_pred_words):
             dic = {'word': old_pred_word, 'score': 0}
             # assign each word with a score
-            score_vec = pred_word2sv[i]
-            score = 0
+            pred_sv = pred_word2sv[i]
             if self.args.concat_way == 'string':
                 if self.args.attribute_value == 'use':
                     # only one ppl
-                    perplexity = score_vec.ppls[0]
+                    perplexity = pred_sv.ppls[0]
                     score = perplexity.ppl
                 else:
                     raise ValueError()
@@ -290,9 +292,11 @@ class Verbalizer(object):
                 # do not use value, we will compare similarity between src and pred
                 if self.args.attribute_value == 'use':
                     # each word has m score
-                    pass
+                    score = self.get_score_from_vector(pred_sv)
                 else:
-                    pass
+                    # ignore the value in info box, we have to rank them by similarity
+                    score = self.get_similarity_from_vectors(src_sv, pred_sv)
+
             dic['score'] = score
             score_strings.append(dic)
         # rank by score
@@ -302,7 +306,65 @@ class Verbalizer(object):
             score_strings.sort(key=lambda b: b['score'], reverse=True)
         pure_strings = [s['word'] for s in score_strings] + unparticipate_old_pred_words
         final_strings = pure_strings[:self.args.num_return_sequences]
-        return final_strings
+        return final_strings, score_strings
+
+    def get_score_from_vector(self, score_vector):
+        final_score = 0
+        ppl_list = []
+        for ppl in score_vector.ppls:
+            ppl_list.append(ppl.ppl)
+        if self.args.vector_squeeze_strategy == 'avg':
+            final_score = sum(ppl_list) / len(ppl_list)
+        elif self.args.vector_squeeze_strategy == 'min':
+            final_score = min(ppl_list)
+        return final_score
+
+    def get_similarity_from_vectors(self, src_sv, pred_sv):
+        """
+        :param src_sv: ScoreVector
+        :param pred_sv: ScoreVector
+        :return: similarity of the 2 vector, float, [0,1]
+        """
+
+        # Now we only compare the similarity of the first token,
+        # because we don't know how to decode until stop and record this ppl
+        def get_sim_vec(score_vector):
+            score_list = []
+            if self.args.similarity_vector_dimension == 'm':
+                for ppl in score_vector.ppls:
+                    score_list.append(ppl.ppl)
+            elif self.args.similarity_vector_dimension == 'mxd':
+                score_list = [token_logit for token_logit in score_vector.last_token_logits]
+            return score_list
+
+        final_similarity = 0
+        src_vec = get_sim_vec(src_sv)
+        pred_vec = get_sim_vec(pred_sv)
+        if self.args.vector_similarity == 'cosine':
+            if self.args.similarity_vector_dimension == 'm':
+                final_similarity = get_cos_similar(src_vec, pred_vec)
+            elif self.args.similarity_vector_dimension == 'mxd':
+                attribute_num = len(src_vec)
+                for i in range(attribute_num):
+                    final_similarity += get_cos_similar(src_vec[i], pred_vec[i])
+                # final_similarity = get_cos_similar_matrix(src_vec, pred_vec)
+        elif self.args.vector_similarity == 'euclid':
+            final_similarity = np.linalg.norm(np.array(src_vec) - np.array(pred_vec))
+        return float(final_similarity)
+
+
+def get_cos_similar_matrix(v1, v2):
+    num = np.dot(v1, np.array(v2).T)
+    denom = np.linalg.norm(v1, axis=1).reshape(-1, 1) * np.linalg.norm(v2, axis=1)
+    res = num / denom
+    res[np.isneginf(res)] = 0
+    return 0.5 + 0.5 * res
+
+
+def get_cos_similar(v1: list, v2: list):
+    num = float(np.dot(v1, v2))
+    denom = np.linalg.norm(v1) * np.linalg.norm(v2)
+    return 0.5 + 0.5 * (num / denom) if denom != 0 else 0
 
 
 """

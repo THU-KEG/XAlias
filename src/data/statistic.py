@@ -47,6 +47,10 @@ def work():
             print("Data from: ", args.at_result_dir)
             print("avg predict_word_num for each pattern:", avg_predict_nums)
             print("avg_num:", sum(avg_predict_nums) / len(avg_predict_nums))
+    elif args.task == 'aggregate_draw_hits':
+        pass
+    elif args.task == 'aggregate_dump_features':
+        pass
 
 
 if __name__ == '__main__':
