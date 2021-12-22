@@ -289,13 +289,12 @@ class Verbalizer(object):
                 else:
                     raise ValueError()
             else:
-                # do not use value, we will compare similarity between src and pred
-                if self.args.attribute_value == 'use':
-                    # each word has m score
-                    score = self.get_score_from_vector(pred_sv)
-                else:
-                    # ignore the value in info box, we have to rank them by similarity
+                if self.args.rerank_by == 'similarity':
+                    # we will compare similarity between src and pred
                     score = self.get_similarity_from_vectors(src_sv, pred_sv)
+                else:
+                    # each word has a vector of m scores, will squeeze them into a scalar
+                    score = self.get_score_from_vector(pred_sv)
 
             dic['score'] = score
             score_strings.append(dic)

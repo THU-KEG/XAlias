@@ -213,3 +213,36 @@ few_shot_alias_table = {
     'void': {},
 }
 """
+
+cwd_avu_hits_result_paths = {
+    "cwd_avu_vssa_svdm_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190951/rerank/ppl/time_12211455",
+    "cwd_avu_vssm_svdm_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190951/rerank/ppl/time_12211459",
+    "cwd_avu_vssa_svdm_vsc_rbs": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190951/rerank/ppl/time_12220815",
+    "cwd_avu_vssa_svdm_vse_rbs": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190951/rerank/ppl/time_12220821",
+    "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900",
+}
+
+cwd_avi_hits_result_paths = {
+    "cwd_avi_vssa_svdm_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12211509",
+    "cwd_avi_vssa_svdmxd_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12211526",
+    "cwd_avi_vssa_svdm_vse": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12211528",
+    "cwd_avi_vssa_svdmxd_vse": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12211530",
+    "cwd_avi_vssa_svdm_vsc_rbsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12220828",
+    "cwd_avi_vssm_svdm_vsc_rbsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12220829",
+    "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900",
+}
+
+cw_av_best_compare_paths = {
+    "cwd_avu_vssa_svdm_vsc_rbs": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190951/rerank/ppl/time_12220815",
+    "cwd_avu_vssa_svdm_vse_rbs": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190951/rerank/ppl/time_12220821",
+    "cwd_avi_vssa_svdmxd_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12211526",
+    "cwd_avi_vssa_svdm_vse": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12211528",
+    "cwu_avu": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190946/rerank/ppl/time_12211447",
+    "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900",
+}
+
+_hits_result_paths = {
+    "distributed_use_value": cwd_avu_hits_result_paths,
+    "distributed_ignore_value": cwd_avi_hits_result_paths,
+    "compare_best_score": cw_av_best_compare_paths
+}

@@ -81,6 +81,8 @@ def main():
     parser.add_argument('--range', default=[0, 2], nargs='+', help="the range used in grid search for lambda")
 
     # rerank by ppl
+    parser.add_argument('--rerank_by', type=str, default='similarity',
+                        choices=['similarity', 'scalar'], help="how to rerank")
     parser.add_argument('--vector_squeeze_strategy', type=str, default='avg',
                         choices=['avg', 'min'], help="how to get_score_from_vector")
     parser.add_argument('--similarity_vector_dimension', type=str, default='m',

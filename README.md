@@ -398,3 +398,11 @@ different rerank strategies for synonym:
 | softmax  | frequency   | 298.015 | 0.23    | 0.255     | "hits@0": 3.0,  "hits@1": 4.0,    "hits@2": 4.0,    "hits@3": 6.0,    "hits@4": 7.5,    "hits@5": 8.5, |
 | softmax  | probability | 298.015 | 0.225   | 0.255     | "hits@0": 0.0,  "hits@1": 1.0,    "hits@2": 1.5,    "hits@3": 2.5,    "hits@4": 2.5,    "hits@5": 3.0, |
 | softmax  | prob_freq   | 298.015 | 0.23    | 0.255     | "hits@0": **3.5**,  "hits@1": 3.5,    "hits@2": 3.5,    "hits@3": **6.5**,    "hits@4": 7.5,    "hits@5": 8.0, |
+
+## 3.4 rerank
+
+Using top-20 of the strings ranked by frequency to rerank, we can get:
+
+![](./pic/compare_best_score.png)
+
+We find that if the feature vector has a  dimension of $m$ and  use the **euclid** distance to calculate similarity, we can get better results than other perplexity based features. But they all failed to surmount the frequency feature.

@@ -7,6 +7,7 @@ import pickle
 import pandas as pd
 from src.data.discover_alias import HasAlias
 from src.train.measure import get_avg_generate_nums
+from src.model.const import _hits_result_paths
 
 
 def work():
@@ -16,8 +17,9 @@ def work():
     parser.add_argument('--at_result_dir', type=str,
                         default='/data/tsq/xlink/bd/result/synonym/few_shot/task_specific/time_11222133')
     parser.add_argument('--pic_dir', type=str, default='/home/tsq/ybb/pic')
-    parser.add_argument('--task', type=str, default='has_alias_distribution',
-                        choices=['has_alias_distribution', 'num_return_sequences'])
+    parser.add_argument('--task', type=str, default='aggregate_draw_hits',
+                        choices=['has_alias_distribution', 'num_return_sequences', 'aggregate_draw_hits',
+                                 'aggregate_dump_features'])
     args = parser.parse_args()
     has_alias_relation_path = os.path.join(args.data_dir, 'has_alias_relation_record.pkl')
 
@@ -48,9 +50,33 @@ def work():
             print("avg predict_word_num for each pattern:", avg_predict_nums)
             print("avg_num:", sum(avg_predict_nums) / len(avg_predict_nums))
     elif args.task == 'aggregate_draw_hits':
-        pass
+        for pic_name, hits_path_dict in _hits_result_paths.items():
+            draw_hits(args, pic_name, hits_path_dict)
     elif args.task == 'aggregate_dump_features':
         pass
+
+
+def draw_hits(args, pic_name, hits_path_dict):
+    save_path = os.path.join(args.pic_dir, pic_name)
+    hits_value_dict = {"setting": [], "hits": [], "@k": []}
+    for experiment_name, hits_dir in hits_path_dict.items():
+        hits_path = os.path.join(hits_dir, "hits.json")
+        with open(hits_path, 'r') as json_file:
+            hits = json.load(json_file)
+            for i, key in enumerate(hits.keys()):
+                if i > 20:
+                    break
+                value = hits[key]
+                k = int(key[5:])
+                hits_value = float(value)
+                hits_value_dict["setting"].append(experiment_name)
+                hits_value_dict["@k"].append(k)
+                hits_value_dict["hits"].append(hits_value)
+
+    hits_data = pd.DataFrame(hits_value_dict)
+    sns.lineplot(x="@k", y="hits", hue="setting", markers="o", data=hits_data)
+    plt.savefig(save_path, bbox_inches='tight')
+    plt.close('all')
 
 
 if __name__ == '__main__':
