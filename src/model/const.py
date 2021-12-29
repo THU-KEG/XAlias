@@ -214,7 +214,7 @@ few_shot_alias_table = {
 }
 """
 
-cwd_avu_hits_result_paths = {
+dec_17_cwd_avu_hits_result_paths = {
     "cwd_avu_vssa_svdm_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190951/rerank/ppl/time_12211455",
     "cwd_avu_vssm_svdm_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190951/rerank/ppl/time_12211459",
     "cwd_avu_vssa_svdm_vsc_rbs": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190951/rerank/ppl/time_12220815",
@@ -222,7 +222,7 @@ cwd_avu_hits_result_paths = {
     "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900",
 }
 
-cwd_avi_hits_result_paths = {
+dec_17_cwd_avi_hits_result_paths = {
     "cwd_avi_vssa_svdm_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12211509",
     "cwd_avi_vssa_svdmxd_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12211526",
     "cwd_avi_vssa_svdm_vse": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12211528",
@@ -232,7 +232,7 @@ cwd_avi_hits_result_paths = {
     "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900",
 }
 
-cw_av_best_compare_paths = {
+dec_17_cw_av_best_compare_paths = {
     "cwd_avu_vssa_svdm_vsc_rbs": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190951/rerank/ppl/time_12220815",
     "cwd_avu_vssa_svdm_vse_rbs": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12190951/rerank/ppl/time_12220821",
     "cwd_avi_vssa_svdmxd_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12201538/rerank/ppl/time_12211526",
@@ -241,8 +241,42 @@ cw_av_best_compare_paths = {
     "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900",
 }
 
-_hits_result_paths = {
-    "distributed_use_value": cwd_avu_hits_result_paths,
-    "distributed_ignore_value": cwd_avi_hits_result_paths,
-    "compare_best_score": cw_av_best_compare_paths
+dec_17_hits_result_paths = {
+    "distributed_use_value": dec_17_cwd_avu_hits_result_paths,
+    "distributed_ignore_value": dec_17_cwd_avi_hits_result_paths,
+    "compare_best_score": dec_17_cw_av_best_compare_paths
 }
+
+dec_27_cwd_avu_hits_result_paths = {
+    "cwd_avu_vssa_svdm_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250920/rerank/ppl/time_12261044",
+    "cwd_avu_vssm_svdm_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250920/rerank/ppl/time_12261046",
+    "cwd_avu_vssa_svdm_vsc_rbs": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250920/rerank/ppl/time_12261012",
+    "cwd_avu_vssa_svdm_vse_rbs": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250920/rerank/ppl/time_12261013",
+    "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/hits_60",
+}
+
+dec_27_cwd_avi_hits_result_paths = {
+    "cwd_avi_vssa_svdm_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250921/rerank/ppl/time_12261013",
+    "cwd_avi_vssa_svdmxd_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250921/rerank/ppl/time_12261014",
+    "cwd_avi_vssa_svdm_vse": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250921/rerank/ppl/time_12261015",
+    "cwd_avi_vssa_svdmxd_vse": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250921/rerank/ppl/time_12261016",
+    "cwd_avi_vssa_svdm_vsc_rbsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250921/rerank/ppl/time_12261018",
+    "cwd_avi_vssm_svdm_vsc_rbsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250921/rerank/ppl/time_12261019",
+    "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/hits_60",
+}
+
+dec_27_cw_av_best_compare_paths = {
+    "cwd_avu_vssa_svdm_vsc_rbs": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250920/rerank/ppl/time_12261012",
+    "cwd_avu_vssa_svdm_vse_rbs": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250920/rerank/ppl/time_12261013",
+    "cwd_avi_vssa_svdmxd_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250921/rerank/ppl/time_12261014",
+    "cwd_avi_vssa_svdm_vse": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250921/rerank/ppl/time_12261015",
+    "cwu_avu": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12250919/rerank/ppl/time_12261044",
+    "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/hits_60",
+}
+
+dec_27_hits_result_paths = {
+    "distributed_use_value": dec_27_cwd_avu_hits_result_paths,
+    "distributed_ignore_value": dec_27_cwd_avi_hits_result_paths,
+    "compare_best_score": dec_27_cw_av_best_compare_paths
+}
+

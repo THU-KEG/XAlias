@@ -59,16 +59,16 @@ We reverse the entity linking relations and get the map between  the entity id a
 
 Here are some types which frequently appear in the result:
 
-| Type           | example                                                      | Noise  |
-| -------------- | ------------------------------------------------------------ | ------ |
-| Multiple alias | bdi13132852::=纽约大学::=美国纽约大学::=new york university::=nyu | NO     |
-| Bilingual      | bdi12962206::=滨田麻里::=滨田マリ                            | NO     |
-| Prefix         | bdi3680860::=移动定制手机::=中国移动定制机<br/>bdi8362196::=夏宫::=彼得大帝夏宫 | NO     |
-| Suffix         | bdi17597962::=永夜城::=永夜城（短篇小说）<br/>bdi4004751::=北京大北宾馆::=北京大北宾馆（大望路店） | NO     |
-| Abbreviation   | bdi18479549::=国动委::=国家国防动员委员会                    | NO     |
-| Synonym        | bdi4049370::=波尔多红酒::=波尔多葡萄酒                       | NO     |
-| Punctuation    | bdi4611038::=洛奇::=《洛奇》                                 | NO     |
-| One to all     | bdi14804606::=万达广场::=厦门湖里万达广场<br/>bdi14805470::=万达广场::=苏州万达广场<br/>bdi14805482::=万达广场::=莆田万达广场 | YES/NO |
+| Type          | example                             |
+| ------------- | ----------------------------------- |
+| Prefix_extend | 夏宫::=彼得大帝夏宫                 |
+| Prefix_reduce | 晋祠水母楼::=水母楼                 |
+| Suffix_extend | 永夜城::=永夜城（短篇小说）         |
+| Suffix_reduce | 雍公馆（若水店）::=雍公馆           |
+| Abbreviation  | 国家国防动员委员会::=国动委         |
+| Expansion     | 济南十九中学::=山东省济南第十九中学 |
+| Synonym       | 波尔多红酒::=波尔多葡萄酒           |
+| Punctuation   | 洛奇::=《洛奇》                     |
 
 ## 2.2 Definition of `hasAlias`
 
@@ -84,7 +84,7 @@ If  $w$  corresponds to a set of entities $E_w$,   then for the entity $e_i \in 
 
 Here is the distribution of different alias types:
 
-![](./pic/number_of_alias_filter_english.png)
+![](./pic/number_of_alias.png)
 
 # 3. Ways of few shot prompt
 
@@ -403,6 +403,6 @@ different rerank strategies for synonym:
 
 Using top-20 of the strings ranked by frequency to rerank, we can get:
 
-![](./pic/compare_best_score.png)
+![](pic/1217_expansion_cn20_hits/compare_best_score.png)
 
 We find that if the feature vector has a  dimension of $m$ and  use the **euclid** distance to calculate similarity, we can get better results than other perplexity based features. But they all failed to surmount the frequency feature.

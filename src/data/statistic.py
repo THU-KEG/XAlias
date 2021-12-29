@@ -7,13 +7,13 @@ import pickle
 import pandas as pd
 from src.data.discover_alias import HasAlias
 from src.train.measure import get_avg_generate_nums
-from src.model.const import _hits_result_paths
+from src.model.const import dec_27_hits_result_paths
 
 
 def work():
     parser = argparse.ArgumentParser()
     # path params
-    parser.add_argument('--data_dir', type=str, default='/data/tsq/xlink/bd/')
+    parser.add_argument('--data_dir', type=str, default='/data/tsq/xlink/bd/purify/filter_english/pool_80/')
     parser.add_argument('--at_result_dir', type=str,
                         default='/data/tsq/xlink/bd/result/synonym/few_shot/task_specific/time_11222133')
     parser.add_argument('--pic_dir', type=str, default='/home/tsq/ybb/pic')
@@ -50,7 +50,7 @@ def work():
             print("avg predict_word_num for each pattern:", avg_predict_nums)
             print("avg_num:", sum(avg_predict_nums) / len(avg_predict_nums))
     elif args.task == 'aggregate_draw_hits':
-        for pic_name, hits_path_dict in _hits_result_paths.items():
+        for pic_name, hits_path_dict in dec_27_hits_result_paths.items():
             draw_hits(args, pic_name, hits_path_dict)
     elif args.task == 'aggregate_dump_features':
         pass
@@ -64,7 +64,7 @@ def draw_hits(args, pic_name, hits_path_dict):
         with open(hits_path, 'r') as json_file:
             hits = json.load(json_file)
             for i, key in enumerate(hits.keys()):
-                if i > 20:
+                if i > 60:
                     break
                 value = hits[key]
                 k = int(key[5:])
