@@ -280,3 +280,13 @@ dec_27_hits_result_paths = {
     "compare_best_score": dec_27_cw_av_best_compare_paths
 }
 
+dec_30_cwd_avi_hits_result_paths = {
+    "cwd_avi_vssa_svdm_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12261132/rerank/ppl/time_12301608",
+    "cwd_avi_vssa_svdmxd_vsc": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12261132/rerank/ppl/time_12301609",
+    "cwd_avi_vssa_svdm_vse": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12261132/rerank/ppl/time_12301610",
+    "cwd_avi_vssa_svdmxd_vse": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/score/time_12261132/rerank/ppl/time_12301614",
+    "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/",
+}
+dec_30_hits_result_paths = {
+    "distributed_ignore_value": dec_30_cwd_avi_hits_result_paths,
+}
