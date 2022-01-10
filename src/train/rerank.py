@@ -89,6 +89,11 @@ def main():
                         choices=['m', 'mxd'], help="similarity vector dimension, d is 30000")
     parser.add_argument('--vector_similarity', type=str, default='m',
                         choices=['cosine', 'euclid'], help="the type of similarity")
+    # using original features to rerank but filter pred_words by POS parsing
+    parser.add_argument('--pos_type', type=str, default='upos',
+                        choices=['upos', 'xpos'], help="use universal or treebank tag")
+    parser.add_argument('--permit_pos_tags', default=['PROPN', 'NOUN', 'PART', 'PUNCT'], nargs='+',
+                        help="The permitted tags")
     parser = add_rescore_param(parser)
     parser = add_decode_param(parser)
     parser = add_test_param(parser)
