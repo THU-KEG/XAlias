@@ -4,13 +4,13 @@ import stanfordnlp
 lang = 'zh'
 # test_str = "Barack Obama was born in Hawaii."
 # test_str = "清华大学也叫清华，北京大学的别名是北大。"
-test_str = "北京作家协会"
+test_str = "四川电视节也叫四川电视台，四川电视台。"
 nlp = stanfordnlp.Pipeline(lang=lang, processors='tokenize,mwt,pos')
 doc = nlp(test_str)
 print(*[f'word: {word.text + " "}\tupos: {word.upos}\txpos: {word.xpos}' for sent in doc.sentences for word in
         sent.words], sep='\n')
 print("No2########")
-test_str = "清华大学也叫清华，北京大学的别名是北大。"
+test_str = "四川电视节也叫四川省电视节，四川"
 doc = nlp(test_str)
 print(*[f'word: {word.text + " "}\tupos: {word.upos}\txpos: {word.xpos}' for sent in doc.sentences for word in
         sent.words], sep='\n')

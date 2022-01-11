@@ -3,6 +3,7 @@ import bminf
 import numpy as np
 import stanfordnlp
 from src.model.decode import beam_search, Beam, generate_return_beam
+from src.data.discover_alias import punctuation
 from difflib import SequenceMatcher
 from src.model.const import patterns, few_shot_alias_table
 from collections import Counter
@@ -266,39 +267,67 @@ class Verbalizer(object):
             ranked_strings = [b.tokens for b in freq_beams]
         return ranked_strings
 
-    def rerank(self, pattern2beams):
+    def rerank(self, src_word, pattern2beams):
         # process and truncate
         final_pattern2strings = []
         for beams in pattern2beams:
             pred_words = self.process(beams)
             # filter these pred_words by POS parsing
             if self.args.pos_type == 'upos':
-                pred_words = self.filter_by_pos(pred_words)
+                pred_words = self.filter_by_pos(src_word, pred_words)
             final_pattern2strings.append(pred_words[:self.args.num_return_sequences])
         return final_pattern2strings
 
-    def filter_by_pos(self, pred_words):
+    def filter_by_pos(self, src_word, pred_words):
+        def parse_doc(_pred_word):
+            if self.args.concat_parse == 'yes':
+                _pred_word = src_word + "即" + _pred_word
+            try:
+                _doc = self.nlp(_pred_word)
+            except AssertionError:
+                print("AssertionError at word {}".format(_pred_word))
+                return None
+            return _doc
+
         pure_strings = []
         for pred_word in pred_words:
-            if pred_word is None or len(pred_word) == 0:
+            if pred_word is None or len(pred_word) <= 0:
                 continue
             valid = True
-            doc = self.nlp(pred_word)
+            doc = parse_doc(pred_word)
+            if not doc:
+                continue
             pos_tags = [word.upos for sent in doc.sentences for word in sent.words]
-            for pos_tag in pos_tags:
-                if pos_tag not in self.args.permit_pos_tags:
-                    # rule1: contain words that are not permitted
-                    valid = False
+            src_tags = []
+            start_index = 0
+            for _index, word in enumerate(doc.sentences[0].words):
+                if "即" in str(word):
+                    start_index = _index
                     break
-            # rule2: check for punctuation, the punctuation within pred_word is not allowed
-            if self.args.alias_type == 'punctuation':
-                # On 'punctuation' domain, we permit pred_word starts like 《 or “
-                check_list = pos_tags[1:-1]
-            else:
-                check_list = pos_tags[:-1]
+                else:
+                    src_tags.append(word.upos)
+            pred_pos_tags = pos_tags[start_index:]
 
-            if 'PUNCT' in check_list:
-                valid = False
+            # rule1: contain words that are not permitted
+            if 'rule1' in self.args.pos_rules:
+                for pos_tag in pred_pos_tags:
+                    if pos_tag not in self.args.permit_pos_tags:
+                        valid = False
+                        break
+            # rule2: check for punctuation, the punctuation within pred_word is not allowed
+            if 'rule2' in self.args.pos_rules:
+                if self.args.alias_type == 'punctuation':
+                    # On 'punctuation' domain, we permit pred_word starts like 《 or “
+                    check_list = pred_pos_tags[1:-1]
+                else:
+                    if pred_word[-1] in punctuation:
+                        continue
+                    else:
+                        # Because the stanford nlp parser tends to view the last token as PUNCT
+                        check_list = pred_pos_tags[:-1]
+
+                if 'PUNCT' in check_list and 'PUNCT' not in src_tags:
+                    valid = False
 
             if valid:
                 pure_strings.append(pred_word)

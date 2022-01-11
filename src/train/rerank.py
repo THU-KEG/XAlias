@@ -50,7 +50,7 @@ def validate(old_records, verbalizer, args, log_dir):
             else:
                 old_record = old_records[idx]
                 # re-rank here with original features like frequency
-                pred_words = verbalizer.rerank(old_record['beams'])
+                pred_words = verbalizer.rerank(old_record['src_word'], old_record['beams'])
             # None because we have record it before, so we can save some space
             pattern2beams = None
             golden = ' '.join(tgt_words)
@@ -90,10 +90,14 @@ def main():
     parser.add_argument('--vector_similarity', type=str, default='m',
                         choices=['cosine', 'euclid'], help="the type of similarity")
     # using original features to rerank but filter pred_words by POS parsing
+    parser.add_argument('--pos_rules', default=['rule2'], nargs='+',
+                        help="The permitted tags")
     parser.add_argument('--pos_type', type=str, default='upos',
                         choices=['upos', 'xpos'], help="use universal or treebank tag")
     parser.add_argument('--permit_pos_tags', default=['PROPN', 'NOUN', 'PART', 'PUNCT'], nargs='+',
                         help="The permitted tags")
+    parser.add_argument('--concat_parse', type=str, default='yes',
+                        choices=['yes', 'no'], help="whether concat the src_name to parse or not ")
     parser = add_rescore_param(parser)
     parser = add_decode_param(parser)
     parser = add_test_param(parser)
