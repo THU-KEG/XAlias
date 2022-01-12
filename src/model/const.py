@@ -290,3 +290,29 @@ dec_30_cwd_avi_hits_result_paths = {
 dec_30_hits_result_paths = {
     "distributed_ignore_value": dec_30_cwd_avi_hits_result_paths,
 }
+
+pos_rules_result_paths = {
+    "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/hits_60",
+    "r1": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/rerank/frequency/time_01121541",
+    "r2": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/rerank/frequency/time_01121252",
+    "r1+r2": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/rerank/frequency/time_01121646",
+}
+
+r1r2_VERB_result_paths = {
+    "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/hits_60",
+    "permit_VERB": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/rerank/frequency/time_01121511",
+    "without_VERB": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/rerank/frequency/time_01121410"
+}
+
+rule2_concat_result_paths = {
+    "frequency": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/hits_60",
+    "not_concat": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/rerank/frequency/time_01111323",
+    "concat_src_word": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/rerank/frequency/time_01111640",
+    "concat_pronoun": "/data/tsq/xlink/bd/purify/filter_english/pool_80/result/expansion/few_shot/task_specific/time_12140900/rerank/frequency/time_01111433"
+}
+
+jan_12_pos_result_paths = {
+    "pos_rules_result": pos_rules_result_paths,
+    "r1r2_VERB_result": r1r2_VERB_result_paths,
+    "r2_concat_result": rule2_concat_result_paths,
+}

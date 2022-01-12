@@ -281,7 +281,7 @@ class Verbalizer(object):
     def filter_by_pos(self, src_word, pred_words):
         def parse_doc(_pred_word):
             if self.args.concat_parse == 'yes':
-                _pred_word = src_word + "即" + _pred_word
+                _pred_word = src_word + "叫" + _pred_word
             try:
                 _doc = self.nlp(_pred_word)
             except AssertionError:
@@ -301,8 +301,8 @@ class Verbalizer(object):
             src_tags = []
             start_index = 0
             for _index, word in enumerate(doc.sentences[0].words):
-                if "即" in str(word):
-                    start_index = _index
+                if "叫" in str(word):
+                    start_index = _index + 1
                     break
                 else:
                     src_tags.append(word.upos)
@@ -310,8 +310,19 @@ class Verbalizer(object):
 
             # rule1: contain words that are not permitted
             if 'rule1' in self.args.pos_rules:
+                if len(pred_pos_tags) == 0:
+                    print("#" * 8)
+                    print("No pred_pos_tags")
+                    print(pred_word)
+                    valid = False
                 for pos_tag in pred_pos_tags:
-                    if pos_tag not in self.args.permit_pos_tags:
+                    if pos_tag not in self.args.permit_pos_tags and pos_tag not in src_tags:
+                        print("-" * 8)
+                        print("src: ", src_tags)
+                        print("pred_pos_tags: ", pred_pos_tags)
+                        print(pos_tag)
+                        print("No permit_pos_tags and src_tags")
+                        print(pred_word)
                         valid = False
                         break
             # rule2: check for punctuation, the punctuation within pred_word is not allowed

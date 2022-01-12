@@ -27,6 +27,7 @@ def observe_cases(args, data_num, old_records, rerank_records):
                 print("Bad case")
                 print("Src_word:")
                 print(old_record['src_word'])
+                print("old_rank is", get_old_rank(tgt_words, old_pred_words))
                 print("Filtered wrong tgt_words:")
                 print(tgt_words)
                 print("-" * 6)
@@ -38,6 +39,13 @@ def observe_cases(args, data_num, old_records, rerank_records):
                 print("Tgt_words:")
                 print(tgt_words)
                 print("#" * 6)
+
+
+def get_old_rank(tgt_words, old_pred_words):
+    for i, old_pred_word in enumerate(old_pred_words):
+        if old_pred_word in tgt_words:
+            return i
+    return len(tgt_words) - 1
 
 
 def exact_match(tgt_words, pred_words):
