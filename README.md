@@ -406,3 +406,9 @@ Using top-20 of the strings ranked by frequency to rerank, we can get:
 ![](pic/1217_expansion_cn20_hits/compare_best_score.png)
 
 We find that if the feature vector has a  dimension of $m$ and  use the **euclid** distance to calculate similarity, we can get better results than other perplexity based features. But they all failed to surmount the frequency feature.
+
+
+
+We also tried to use POS parsing to find the error candidate and clean them. Rule 2 is useful. 
+
+![](pic/pos_rules_result.png)
