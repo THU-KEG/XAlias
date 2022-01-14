@@ -412,3 +412,7 @@ We find that if the feature vector has a  dimension of $m$ and  use the **euclid
 We also tried to use POS parsing to find the error candidate and clean them. Rule 2 is useful. 
 
 ![](pic/pos_rules_result.png)
+
+The parser we use is `stanfordnlp`, but it may be wrong sometime:
+
+![](pic/stanford_nlp_example.png)
