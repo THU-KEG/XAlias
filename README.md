@@ -416,3 +416,5 @@ We also tried to use POS parsing to find the error candidate and clean them. Rul
 The parser we use is `stanfordnlp`, but it may be wrong sometime:
 
 ![](pic/stanford_nlp_example.png)
+
+Next, we will try to use NER to identify the candidate alias.
