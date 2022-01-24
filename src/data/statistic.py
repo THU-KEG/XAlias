@@ -9,6 +9,17 @@ from src.data.discover_alias import HasAlias
 from src.train.measure import get_avg_generate_nums
 from src.model.const import jan_12_pos_result_paths
 
+en2ch = {
+    "prefix_extend": "增加前缀",
+    "prefix_reduce": "去除前缀",
+    "suffix_extend": "增加后缀",
+    "suffix_reduce": "去除后缀",
+    "abbreviation": "缩写",
+    "expansion": "扩写",
+    "synonym": "同义短语",
+    "punctuation": "增加标点",
+}
+
 
 def work():
     parser = argparse.ArgumentParser()
@@ -17,27 +28,42 @@ def work():
     parser.add_argument('--at_result_dir', type=str,
                         default='/data/tsq/xlink/bd/result/synonym/few_shot/task_specific/time_11222133')
     parser.add_argument('--pic_dir', type=str, default='/home/tsq/ybb/pic')
-    parser.add_argument('--task', type=str, default='aggregate_draw_hits',
+    parser.add_argument('--task', type=str, default='has_alias_distribution',
                         choices=['has_alias_distribution', 'num_return_sequences', 'aggregate_draw_hits',
                                  'aggregate_dump_features'])
     args = parser.parse_args()
     has_alias_relation_path = os.path.join(args.data_dir, 'has_alias_relation_record.pkl')
 
     if args.task == 'has_alias_distribution':
+        plt.rcParams['font.sans-serif'] = ['SimHei']  # 黑体
+        plt.rcParams['axes.unicode_minus'] = False  # 解决无法显示符号的问题
+        sns.set(font='SimHei', font_scale=0.8)  # 解决Seaborn中文显示问题
+
         with open(has_alias_relation_path, 'rb') as fin:
             has_alias_relation_record = pickle.load(fin)
             total_num = 0
             alias_types = []
+            type2num = {}
             for alias_type, has_alias_list in has_alias_relation_record.items():
                 for i in range(len(has_alias_list)):
-                    alias_types.append(alias_type)
+                    alias_types.append(en2ch[alias_type])
                 print(alias_type, len(has_alias_list))
                 total_num += len(has_alias_list)
+                type2num[alias_type] = len(has_alias_list)
             print("total num is ", total_num)
             df = pd.DataFrame({'type': alias_types})
             # draw bar picture
             g = sns.catplot(x="type", kind="count", palette="ch:.50", data=df)
             g.set_xticklabels(rotation=45)
+            g.fig.set_size_inches(10, 8)
+            g.fig.subplots_adjust(top=0.81, right=0.86)
+            # 在柱状图的上面显示各个类别的数量
+            i = 0
+            for _alias_type, num in type2num.items():
+                # 在柱状图上绘制该类别的数量
+                g.ax.text(1 * i - 0.15, num, '{}'.format(num))
+                i += 1
+
             plt.title("Number of alias")
             save_path = os.path.join(args.pic_dir, 'number_of_alias.png')
             plt.savefig(save_path, bbox_inches='tight')
