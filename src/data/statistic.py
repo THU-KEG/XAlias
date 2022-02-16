@@ -5,6 +5,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pickle
 import pandas as pd
+from xlrd import open_workbook
 from src.data.discover_alias import HasAlias
 from src.train.measure import get_avg_generate_nums
 from src.model.const import jan_12_pos_result_paths
@@ -28,9 +29,14 @@ def work():
     parser.add_argument('--at_result_dir', type=str,
                         default='/data/tsq/xlink/bd/result/synonym/few_shot/task_specific/time_11222133')
     parser.add_argument('--pic_dir', type=str, default='/home/tsq/ybb/pic')
-    parser.add_argument('--task', type=str, default='has_alias_distribution',
+    # human data
+    parser.add_argument('--xls_path', type=str, default='/home/tsq/ybb/data/human/time_01121646.xls')
+    parser.add_argument('--sheet_num', type=int, default=140)
+    parser.add_argument('--annotate_k', type=int, default=20)
+    # task
+    parser.add_argument('--task', type=str, default='human_acc',
                         choices=['has_alias_distribution', 'num_return_sequences', 'aggregate_draw_hits',
-                                 'aggregate_dump_features'])
+                                 'aggregate_dump_features', 'human_acc'])
     args = parser.parse_args()
     has_alias_relation_path = os.path.join(args.data_dir, 'has_alias_relation_record.pkl')
 
@@ -78,8 +84,8 @@ def work():
     elif args.task == 'aggregate_draw_hits':
         for pic_name, hits_path_dict in jan_12_pos_result_paths.items():
             draw_hits(args, pic_name, hits_path_dict)
-    elif args.task == 'aggregate_dump_features':
-        pass
+    elif args.task == 'human_acc':
+        read_xls(args)
 
 
 def draw_hits(args, pic_name, hits_path_dict):
@@ -103,6 +109,26 @@ def draw_hits(args, pic_name, hits_path_dict):
     sns.lineplot(x="@k", y="hits", hue="setting", markers="o", data=hits_data)
     plt.savefig(save_path, bbox_inches='tight')
     plt.close('all')
+
+
+def read_xls(args):
+    read_book = open_workbook(args.xls_path)
+    valid_alias_list = []
+    for i in range(args.sheet_num):
+        sheet = read_book.sheet_by_index(i)
+        valid_alias_num = 0
+        for j in range(1, 1 + args.annotate_k):
+            value = sheet.cell(j, 3).value
+            print("i,j", i, j)
+            print(value)
+            valid_alias_num += int(value)
+        valid_alias_list.append(valid_alias_num)
+    print(valid_alias_list)
+    average_alias_num = sum(valid_alias_list) / len(valid_alias_list)
+    print("alias_num@{} is {}".format(str(args.annotate_k), str(average_alias_num)))
+    zero_num = valid_alias_list.count(0)
+    hits = (len(valid_alias_list) - zero_num) / len(valid_alias_list)
+    print("hits@{} is {}".format(str(args.annotate_k), str(hits)))
 
 
 if __name__ == '__main__':
