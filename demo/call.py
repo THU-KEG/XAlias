@@ -31,14 +31,15 @@ def get_alias_example_tables(args):
     return alias_tables
 
 
-def call_prompt_generation(args):
+def call_prompt_generation(args, model=None):
     cpm2_kwargs = reduce_args(args)
-    if args.language == 'ch':
-        np.random.seed(args.seed)
-        model = bminf.models.CPM2(device=args.gpu_id)
-    else:
-        # huggingface
-        model = None
+    np.random.seed(args.seed)
+    if not model:
+        if args.language == 'ch':
+            model = bminf.models.CPM2(device=args.gpu_id)
+        else:
+            # huggingface
+            model = None
     verbalizer = Verbalizer(args.language, args.task)
     verbalizer.set_cpm2(model, cpm2_kwargs, args)
     src_word = args.src_word
@@ -158,6 +159,18 @@ def main():
         time_end = time.time()
         print(pred_words)
         print('Time cost = %fs' % (time_end - time_start))
+
+
+def prompt_with_json(model, clientJson):
+    parser = argparse.ArgumentParser()
+    parser = add_test_param(parser)
+    parser = add_decode_param(parser)
+    args = parser.parse_args([])
+    args.src_word = clientJson["entity"]
+    args.language = clientJson["lang"]
+    args.alias_type = clientJson["type"]
+    pred_words = call_prompt_generation(args, model)
+    return pred_words
 
 
 if __name__ == "__main__":

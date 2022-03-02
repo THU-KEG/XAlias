@@ -100,7 +100,7 @@ def add_decode_param(parser: argparse.ArgumentParser):
     # beam search
     parser.add_argument('--num_beams', type=int, default=None)
     parser.add_argument('--num_return_sequences', type=int, default=500)
-    parser.add_argument('--num_generate_sequences', type=int, default=256)
+    parser.add_argument('--num_generate_sequences', type=int, default=4)
     return parser
 
 
