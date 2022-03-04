@@ -51,7 +51,7 @@ class IndexHandler(tornado.web.RequestHandler):
             logging.error('Caught error from unknown location: ' + str(e))
             returnJson = self.getErrorJson('Please try again. General error: ' + str(e))
 
-        logging.debug('Sending JSON data: ' + str(returnJson))
+        logging.info('Sending JSON data: ' + str(returnJson))
 
         self.write(returnJson)  # send JSON to client
 
