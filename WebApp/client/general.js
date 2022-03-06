@@ -301,28 +301,50 @@ function SubmitToAMT(callbackSuccess) {
 }
 
 function sendRequest(jsonStr) {
-    // Sending and receiving data in JSON format using POST method
-    var xhr = new XMLHttpRequest();
-    var url = requestUrl;
-    xhr.open("POST", url, true);
-    // xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            alert("xhr.readyState === 4 && xhr.status === 200");
-            try {
-                var jsonObj = JSON.parse(xhr.responseText);
-                alert(JSON.stringify(jsonStr));
-                handleJsonReply(jsonObj);
-            } catch (e) {
-                alert("Error getting response: " + e);
-            }
-        } else if (xhr.readyState === 4 && xhr.status === 503) {
-            alert("Service seems to be down.");
-        }
-    };
     var data = JSON.stringify(jsonStr);
-    xhr.send(data);
-    isWaitingForResponse = true;
+    alert(data);
+    $.ajax({
+        type: "post",
+        url: requestUrl,
+        dataType: "json",
+        data: data,
+        success: function (result) {
+            console.log("jQuery success");
+            alert("success");
+            var obj = JSON.parse(result);
+            alert(JSON.stringify(obj));
+            // handleJsonReply(obj);
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+            alert("error");
+            alert(textStatus);
+            alert(errorThrown);
+            console.log("jQuery failed");
+        }
+    });
+    //
+    // Sending and receiving data in JSON format using POST method
+    // var xhr = new XMLHttpRequest();
+    // var url = requestUrl;
+    // xhr.open("POST", url, true);
+    // xhr.setRequestHeader("Content-Type", "application/json");
+    // xhr.onreadystatechange = function () {
+    //     if (xhr.readyState === 4 && xhr.status === 200) {
+    //         alert("xhr.readyState === 4 && xhr.status === 200");
+    //         try {
+    //             var jsonObj = JSON.parse(xhr.responseText);
+    //             alert(JSON.stringify(jsonStr));
+    //             handleJsonReply(jsonObj);
+    //         } catch (e) {
+    //             alert("Error getting response: " + e);
+    //         }
+    //     } else if (xhr.readyState === 4 && xhr.status === 503) {
+    //         alert("Service seems to be down.");
+    //     }
+    // };
+    // var data = JSON.stringify(jsonStr);
+    // xhr.send(data);
+    // isWaitingForResponse = true;
 }
 
 function sleep(time) {

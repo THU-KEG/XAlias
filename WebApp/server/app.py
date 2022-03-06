@@ -11,8 +11,8 @@ import logging
 
 logging.basicConfig(level=logging.ERROR,
                     format='%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s')  #
-
-define("port", default=8000, help="run on the given port", type=int)
+logging.disable(logging.INFO)
+define("port", default=5314, help="run on the given port", type=int)
 # request types
 TYPE_ERROR = -1
 TYPE_GET_PROMPT_ALIAS = 0
@@ -23,7 +23,7 @@ TYPE_GET_PROMPT_ALIAS = 0
 chinese_model = bminf.models.CPM2(device=params.gpu_id)
 
 
-class IndexHandler(tornado.web.RequestHandler):
+class PostHandler(tornado.web.RequestHandler):
     def options(self):
         # no body
         logging.debug('Received OPTIONS request')
@@ -36,7 +36,14 @@ class IndexHandler(tornado.web.RequestHandler):
             clientJson = json.loads(self.request.body.decode('utf-8'))
             logging.info('Got JSON data: ' + str(clientJson))
             requestType, clientId = self.getRequestTypeFromClientJson(clientJson)
-            logging.debug('Got requestType: ' + str(requestType))
+            logging.info('Got requestType: ' + str(requestType))
+            # DEBUG:
+            # returnJson = {"haha": "xi"}
+            # self.write(returnJson)  # send JSON to client
+            # logging.info('Sending JSON data: ' + str(returnJson))
+            # self.render('result.html')
+            # logging.info("parsed result.html")
+            # self.write()
             # if client sent an unknown json:
             if requestType == TYPE_ERROR:
                 returnJson = self.getErrorJson('Undefined JSON received.')
@@ -52,8 +59,8 @@ class IndexHandler(tornado.web.RequestHandler):
             returnJson = self.getErrorJson('Please try again. General error: ' + str(e))
 
         logging.info('Sending JSON data: ' + str(returnJson))
-
-        self.write(returnJson)  # send JSON to client
+        self.write(json.dumps(returnJson))  # send JSON to client
+        self.finish()
 
     def getPromptAliasJson(self, clientJson):
         if clientJson["lang"] == "ch":
@@ -83,9 +90,18 @@ class IndexHandler(tornado.web.RequestHandler):
         return {"err": error}
 
 
+class IndexHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render('index.html')
+
+
 if __name__ == "__main__":
     tornado.options.parse_command_line()
-    app = tornado.web.Application(handlers=[(r"/", IndexHandler)])
+    app = tornado.web.Application(
+        handlers=[(r"/", IndexHandler), (r"/alias", PostHandler)],
+        template_path="/home/tsq/ybb/WebApp/client",
+        static_path="/home/tsq/ybb/WebApp/client"
+    )
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
