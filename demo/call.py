@@ -14,6 +14,8 @@ from src.model.pattern import Verbalizer
 from demo.params import add_decode_param, reduce_args, add_test_param
 
 proxies = {"https": "http://106.15.197.250:8001"}
+types = ['prefix_extend', 'prefix_reduce', 'suffix_extend', 'suffix_reduce',
+         'expansion', 'abbreviation', 'punctuation', 'synonym']
 
 
 def get_alias_example_tables(args):
@@ -168,8 +170,14 @@ def prompt_with_json(model, clientJson):
     args = parser.parse_args([])
     args.src_word = clientJson["entity"]
     args.language = clientJson["lang"]
-    args.alias_type = clientJson["type"]
-    pred_words = call_prompt_generation(args, model)
+    if clientJson["type"] != 'all':
+        args.alias_type = clientJson["type"]
+        pred_words = call_prompt_generation(args, model)
+    else:
+        pred_words = {}
+        for alias_type in types:
+            args.alias_type = alias_type
+            pred_words[alias_type] = call_prompt_generation(args, model)
     return pred_words
 
 

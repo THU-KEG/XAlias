@@ -32,15 +32,15 @@ function sendRequest1(jsonObj) {
 function onEntityNameSubmit() {
     var entity = $("#entity").val();
     var lang = $("input[name='lang']:checked").val();
+    var alias_type = $("#alias_type").val();
     // send the server the entity name:
     var clientId = 1;
-    var type = "abbreviation";
     sendRequest1({
         "clientId": clientId,
         "request_get_prompt_alias": {},
         "entity": entity,
         "lang": lang,
-        "type": type
+        "type": alias_type
     })
 }
 

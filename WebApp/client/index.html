@@ -62,11 +62,24 @@
 
                         <input type="submit" value="search" class="btn btn-info" onclick="onEntityNameSubmit();return false">
 
-                        <span>&nbsp;&nbsp;&nbsp;&nbsp; </span>
+                        <span>&nbsp;&nbsp; language: </span>
                         &nbsp;&nbsp;&nbsp;&nbsp;
                         <input type="radio" id="isChName" name="lang" value="ch" checked>&nbsp;&nbsp;ch
                         &nbsp;&nbsp;&nbsp;&nbsp;
                         <input type="radio" id="isEnName" name="lang" value="en">&nbsp;&nbsp;en
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <span>&nbsp;&nbsp; alias_type:&nbsp;&nbsp;&nbsp;&nbsp; </span>
+                        <select name="alias_type" id="alias_type">
+                            <option value="all">all</option>
+                            <option value="abbreviation">abbreviation</option>
+                            <option value="expansion">expansion</option>
+                            <option value="synonym">synonym</option>
+                            <option value="punctuation">punctuation</option>
+                            <option value="prefix_extend">prefix_extend</option>
+                            <option value="prefix_reduce">prefix_reduce</option>
+                            <option value="prefix_reduce">suffix_extend</option>
+                            <option value="prefix_reduce">suffix_reduce</option>
+                        </select>
 
                     </form>
 
