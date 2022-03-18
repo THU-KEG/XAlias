@@ -135,21 +135,38 @@ def parse(args):
             fout.write("\n")
 
 
-def label_stanford_coref(lines, start_idx, data_dir):
+def label_stanford_coref(lines, start_idx, data_dir, language):
     tgt_file_path = os.path.join(data_dir, f"stanford_coref_{start_idx}.json")
     fout = check_fout(tgt_file_path)
     total_num = len(lines)
-    with CoreNLPClient(annotators=['coref'],
-                       timeout=30000, memory='16G') as client:
-        for line in tqdm(lines, total=total_num):
-            _input_json = json.loads(line)
-            text = _input_json["coref_input"]["Text"]
-            ann = client.annotate(text)
-            result = ann.corefChain
-            out_json = {"input": _input_json, "coref": str(result)}
-            # write to json
-            fout.write(json.dumps(out_json))
-            fout.write("\n")
+    if language == "chinese":
+        with CoreNLPClient(
+                properties="chinese",
+                annotators=['coref'],
+                endpoint=f"http://localhost:{5414 + start_idx % 4}",
+                timeout=30000, memory='16G') as client:
+            for line in tqdm(lines, total=total_num):
+                _input_json = json.loads(line)
+                text = _input_json["coref_input"]["Text"]
+                ann = client.annotate(text)
+                result = ann.corefChain
+                document = [[str(token.word) for token in sentence.token] for sentence in ann.sentence]
+                out_json = {"input": _input_json, "coref": str(result), "document": document}
+                # write to json
+                fout.write(json.dumps(out_json, ensure_ascii=False))
+                fout.write("\n")
+    else:
+        with CoreNLPClient(annotators=['coref'],
+                           timeout=30000, memory='16G') as client:
+            for line in tqdm(lines, total=total_num):
+                _input_json = json.loads(line)
+                text = _input_json["coref_input"]["Text"]
+                ann = client.annotate(text)
+                result = ann.corefChain
+                out_json = {"input": _input_json, "coref": str(result)}
+                # write to json
+                fout.write(json.dumps(out_json))
+                fout.write("\n")
     return None
 
 
@@ -163,7 +180,7 @@ def coref_stanford(args):
         for i in range(args.processes):
             start_idx = i * turns
             end_idx = (i + 1) * turns
-            input_param = (lines[start_idx:end_idx], start_idx, args.data_dir)
+            input_param = (lines[start_idx:end_idx], start_idx, args.data_dir, args.language)
             lst.append(input_param)
 
         with multiprocessing.Pool(processes=args.processes) as pool:
@@ -175,6 +192,7 @@ def coref_stanford(args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, default='/data/tsq/xlink/bd')
+    parser.add_argument('--language', type=str, default='chinese')
     parser.add_argument('--max_len', type=int, default=256)
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--processes', type=int, default=8)
