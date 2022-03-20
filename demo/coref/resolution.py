@@ -148,13 +148,16 @@ def label_stanford_coref(lines, start_idx, data_dir, language):
             for line in tqdm(lines, total=total_num):
                 _input_json = json.loads(line)
                 text = _input_json["coref_input"]["Text"]
-                ann = client.annotate(text)
-                result = ann.corefChain
-                document = [[str(token.word) for token in sentence.token] for sentence in ann.sentence]
-                out_json = {"input": _input_json, "coref": str(result), "document": document}
-                # write to json
-                fout.write(json.dumps(out_json, ensure_ascii=False))
-                fout.write("\n")
+                try:
+                    ann = client.annotate(text)
+                    result = ann.corefChain
+                    document = [[str(token.word) for token in sentence.token] for sentence in ann.sentence]
+                    out_json = {"input": _input_json, "coref": str(result), "document": document}
+                    # write to json
+                    fout.write(json.dumps(out_json, ensure_ascii=False))
+                    fout.write("\n")
+                except Exception:
+                    continue
     else:
         with CoreNLPClient(annotators=['coref'],
                            timeout=30000, memory='16G') as client:

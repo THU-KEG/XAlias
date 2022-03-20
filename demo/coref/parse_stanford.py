@@ -5,15 +5,18 @@ from stanfordnlp.server import CoreNLPClient
 from tqdm import tqdm
 import argparse
 
-pattern = re.compile("mentionType: \"(.*?)\"\n.*?beginIndex: (\d+)\n  endIndex: (\d+)\n  .*?\n  sentenceIndex: (\d+)\n")
+pattern_type = re.compile("mentionType: \"(.*?)\"\\n")
+# pattern = re.compile("mentionType: \"(.*?)\"\\n")
+pattern_decimal = re.compile(r'\d+')
 
 
 def getMention(mention_str):
-    quad_regex = pattern.search(mention_str)
-    mentionType = quad_regex.group()
-    beginIndex = int(quad_regex.group(1))
-    endIndex = int(quad_regex.group(2))
-    sentenceIndex = int(quad_regex.group(3))
+    _numbers = pattern_decimal.findall(mention_str)
+    quad_regex = pattern_type.search(mention_str)
+    mentionType = quad_regex.group(1)
+    beginIndex = int(_numbers[1])
+    endIndex = int(_numbers[2])
+    sentenceIndex = int(_numbers[4])
     return {
         "mentionType": mentionType,
         "beginIndex": beginIndex,
@@ -28,12 +31,20 @@ def parse_coref_chain(raw_str: str, document: list):
     for chain_str in chain_str_list:
         mention_str_list = chain_str.split("mention {\n")[1:]
         coref_chain = []
+        mention_texts = []
         for i, mention_str in enumerate(mention_str_list):
             mention = getMention(mention_str)
             if mention["mentionType"] != "PRONOMINAL":
+                # Pronoun is not included in alias
                 sent = document[mention["sentenceIndex"]]
-                mention["text"] = sent[mention["beginIndex"]:sent[mention["endIndex"]]]
-                coref_chain.append(mention)
+                mention["text"] = ' '.join(sent[mention["beginIndex"]:mention["endIndex"]])
+                if mention["text"] not in mention_texts:
+                    # make sure there is no repeat mentions
+                    mention_texts.append(mention["text"])
+                    coref_chain.append(mention)
+        # print("coref_chain:")
+        # print(coref_chain)
+        # print("#" * 20)
         if 1 < len(coref_chain):
             # There are at least 2 co-reference mention are not pronouns
             coref_chains.append(coref_chain)
@@ -53,7 +64,7 @@ def parse_one(data_dir, function, data_id, id2coref_alias: dict):
             ent_list = coref_dict["input"]["entity_list"]
             # sentence and token
             ann = client.annotate(coref_dict["input"]["coref_input"]["Text"])
-            document = [[token for token in sentence.token] for sentence in ann.sentence]
+            document = [[str(token.word) for token in sentence.token] for sentence in ann.sentence]
             coref_chains = parse_coref_chain(coref_dict["coref"], document)
             for coref_chain in coref_chains:
                 for mention_idx, mention in enumerate(coref_chain):
