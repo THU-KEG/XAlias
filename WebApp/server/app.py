@@ -1,26 +1,38 @@
 import bminf
 import json
+import pickle
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 import tornado.web
 from tornado.options import define, options
 import WebApp.server.params as params
-from demo.call import prompt_with_json
+from demo.call import prompt_with_json, coref_with_json, dict_with_json
 import logging
 
-logging.basicConfig(level=logging.ERROR,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s')  #
-logging.disable(logging.INFO)
+# logging.disable(logging.INFO)
 define("port", default=5314, help="run on the given port", type=int)
 # request types
 TYPE_ERROR = -1
 TYPE_GET_PROMPT_ALIAS = 0
+TYPE_GET_COREF_ALIAS = 1
+TYPE_GET_DICT_ALIAS = 2
 
 # m_infoManager = InfoManager()
 
 # load model
 chinese_model = bminf.models.CPM2(device=params.gpu_id)
+# load coref result
+logging.info("start reading")
+bd_id2coref_alias = json.load(open('/data/tsq/xlink/coref/bd/coref_stanford_parse_all_abstract.json', 'r'))
+wiki_id2coref_alias = json.load(open('/data/tsq/xlink/coref/wiki/coref_stanford_parse_all_abstract.json', 'r'))
+bd_mention2ids = pickle.load(open('/data/tsq/xlink/bd/mention2ids.pkl', 'rb'))
+wiki_mention2ids = pickle.load(open('/data/tsq/xlink/wiki/mention2ids.pkl', 'rb'))
+bd_id2mention = pickle.load(open('/data/tsq/xlink/bd/id2mention.pkl', 'rb'))
+wiki_id2mention = pickle.load(open('/data/tsq/xlink/wiki/id2mention.pkl', 'rb'))
+logging.info("finish reading")
 
 
 class PostHandler(tornado.web.RequestHandler):
@@ -51,6 +63,10 @@ class PostHandler(tornado.web.RequestHandler):
                 # m_infoManager.createClient(clientId)
                 if requestType == TYPE_GET_PROMPT_ALIAS:
                     returnJson = self.getPromptAliasJson(clientJson)
+                elif requestType == TYPE_GET_COREF_ALIAS:
+                    returnJson = self.getCorefAliasJson(clientJson)
+                elif requestType == TYPE_GET_DICT_ALIAS:
+                    returnJson = self.getDictAliasJson(clientJson)
                 else:
                     returnJson = self.getErrorJson('Undefined requestType received.')
 
@@ -72,9 +88,37 @@ class PostHandler(tornado.web.RequestHandler):
         jsonReply = json.dumps(dict_reply, ensure_ascii=False)
         return jsonReply
 
+    def getCorefAliasJson(self, clientJson):
+        if clientJson["lang"] == "ch":
+            mention2ids = bd_mention2ids
+            id2coref_alias = bd_id2coref_alias
+        else:
+            mention2ids = wiki_mention2ids
+            id2coref_alias = wiki_id2coref_alias
+        alias_list, raw_chains = coref_with_json(id2coref_alias, mention2ids, clientJson)
+        dict_reply = {"reply_get_coref_alias": {"alias_list": alias_list, "raw_chains": raw_chains}}
+        jsonReply = json.dumps(dict_reply, ensure_ascii=False)
+        return jsonReply
+
+    def getDictAliasJson(self, clientJson):
+        if clientJson["lang"] == "ch":
+            id2mention = bd_id2mention
+            mention2ids = bd_mention2ids
+        else:
+            id2mention = wiki_id2mention
+            mention2ids = wiki_mention2ids
+        alias_list = dict_with_json(id2mention, mention2ids, clientJson)
+        dict_reply = {"reply_get_dict_alias": {"alias_list": alias_list}}
+        jsonReply = json.dumps(dict_reply, ensure_ascii=False)
+        return jsonReply
+
     def getRequestTypeFromClientJson(self, clientJson):
         if 'request_get_prompt_alias' in clientJson:
             requestType = TYPE_GET_PROMPT_ALIAS
+        elif 'request_get_coref_alias' in clientJson:
+            requestType = TYPE_GET_COREF_ALIAS
+        elif 'request_get_dict_alias' in clientJson:
+            requestType = TYPE_GET_DICT_ALIAS
         else:
             requestType = TYPE_ERROR
 

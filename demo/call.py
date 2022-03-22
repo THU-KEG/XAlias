@@ -181,5 +181,35 @@ def prompt_with_json(model, clientJson):
     return pred_words
 
 
+def coref_with_json(id2coref_alias, mention2ids, clientJson):
+    src_word = clientJson["entity"]
+    ids = mention2ids[src_word]
+    alias_list, raw_chains = [], []
+    for _id in ids:
+        if _id in id2coref_alias.keys():
+            coref_alias_list = id2coref_alias[_id]
+            for coref_alias in coref_alias_list:
+                coref_chain = coref_alias["coref_chain"]
+                for mention in coref_chain:
+                    if mention["text"] != src_word:
+                        alias_list.append(mention["text"])
+            raw_chains.extend(coref_alias_list)
+    return alias_list, raw_chains
+
+
+def dict_with_json(id2mention, mention2ids, clientJson):
+    src_word = clientJson["entity"]
+    ids = mention2ids[src_word]
+    alias_list = []
+    for _id in ids:
+        if _id in id2mention.keys():
+            mentions = id2mention[_id]
+            for mention in mentions:
+                if mention != src_word:
+                    alias_list.append(mention)
+
+    return alias_list
+
+
 if __name__ == "__main__":
     main()

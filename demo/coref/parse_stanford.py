@@ -25,7 +25,7 @@ def getMention(mention_str):
     }
 
 
-def parse_coref_chain(raw_str: str, document: list):
+def parse_coref_chain(raw_str: str, document: list, separator: str):
     coref_chains = []
     chain_str_list = raw_str.split("chainID:")[1:]
     for chain_str in chain_str_list:
@@ -37,7 +37,7 @@ def parse_coref_chain(raw_str: str, document: list):
             if mention["mentionType"] != "PRONOMINAL":
                 # Pronoun is not included in alias
                 sent = document[mention["sentenceIndex"]]
-                mention["text"] = ' '.join(sent[mention["beginIndex"]:mention["endIndex"]])
+                mention["text"] = separator.join(sent[mention["beginIndex"]:mention["endIndex"]])
                 if mention["text"] not in mention_texts:
                     # make sure there is no repeat mentions
                     mention_texts.append(mention["text"])
@@ -56,31 +56,38 @@ def parse_one(data_dir, function, data_id, id2coref_alias: dict):
     json_input_path = os.path.join(data_dir, f"{function}_coref_{data_id}.json")
     lines = open(json_input_path, 'r').readlines()
     total_num = len(lines)
-    with CoreNLPClient(annotators=['tokenize', 'ssplit'],
-                       timeout=30000, memory='16G') as client:
-        for line in tqdm(lines, total=total_num):
-            coref_dict = json.loads(line)
-            # entity list
-            ent_list = coref_dict["input"]["entity_list"]
-            # sentence and token
+    is_bd = data_dir.endswith('bd')
+
+    client = None if is_bd else CoreNLPClient(annotators=['tokenize', 'ssplit'],
+                                              timeout=30000, memory='16G')
+    for line in tqdm(lines, total=total_num):
+        coref_dict = json.loads(line)
+        # entity list
+        ent_list = coref_dict["input"]["entity_list"]
+        # sentence and token
+        if is_bd:
+            document = coref_dict["document"]
+            separator = ''
+        else:
             ann = client.annotate(coref_dict["input"]["coref_input"]["Text"])
             document = [[str(token.word) for token in sentence.token] for sentence in ann.sentence]
-            coref_chains = parse_coref_chain(coref_dict["coref"], document)
-            for coref_chain in coref_chains:
-                for mention_idx, mention in enumerate(coref_chain):
-                    for entity in ent_list:
-                        if entity[1] == mention["text"]:
-                            # found one matched entity, this mention's coref mentions can be its alias
-                            chain_dict = {
-                                "coref_chain": coref_chain,
-                                "mention_idx": mention_idx,
-                                "document": document
-                            }
-                            try:
-                                id2coref_alias[entity[0]].append(chain_dict)
-                            except KeyError:
-                                id2coref_alias[entity[0]] = [chain_dict]
-                            break
+            separator = ' '
+        coref_chains = parse_coref_chain(coref_dict["coref"], document, separator)
+        for coref_chain in coref_chains:
+            for mention_idx, mention in enumerate(coref_chain):
+                for entity in ent_list:
+                    if entity[1] == mention["text"]:
+                        # found one matched entity, this mention's coref mentions can be its alias
+                        chain_dict = {
+                            "coref_chain": coref_chain,
+                            "mention_idx": mention_idx,
+                            "document": document
+                        }
+                        try:
+                            id2coref_alias[entity[0]].append(chain_dict)
+                        except KeyError:
+                            id2coref_alias[entity[0]] = [chain_dict]
+                        break
 
     return id2coref_alias
 
@@ -109,7 +116,7 @@ def main():
     # dump
     output_path = os.path.join(args.data_dir, f"coref_{args.function}_{args.task}_{args.src_text}.json")
     with open(output_path, "w") as fout:
-        fout.write(json.dumps(id2coref_alias))
+        fout.write(json.dumps(id2coref_alias, ensure_ascii=False))
 
 
 if __name__ == '__main__':

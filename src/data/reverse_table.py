@@ -5,6 +5,13 @@ import pickle
 from tqdm import tqdm
 
 
+def check_fout(path):
+    if os.path.exists(path):
+        os.remove(path)
+    fout = open(path, 'a')
+    return fout
+
+
 def reverse_read(src_file_path):
     """
     :param src_file_path: A file which stores the mentions and their entity ids
@@ -32,6 +39,9 @@ def reverse_read(src_file_path):
 def get_id2mention(args):
     src_file_path = os.path.join(args.data_dir, args.src_file)
     id2mention = reverse_read(src_file_path)
+    pkl_result_file_path = os.path.join(args.data_dir, "{}.pkl".format(args.result_file_name))
+    with open(pkl_result_file_path, 'wb') as fout:
+        pickle.dump(id2mention, fout)
     print("[1]Finish reading")
     # save
     json_result_file_path = os.path.join(args.data_dir, "{}.json".format(args.result_file_name))
@@ -88,6 +98,48 @@ def get_id2ent_name(args):
         print("[2]Save {}".format(result_path))
 
 
+def get_mention2ids(args):
+    src_file_path = os.path.join(args.data_dir, args.src_file)
+    mention2ids = {}
+    with open(src_file_path, 'r') as fin:
+        lines = fin.readlines()
+        len_lines = len(lines)
+        for line in tqdm(lines, total=len_lines):
+            pieces = line.strip('\n').split('::=')
+            mention = pieces[0]
+            ids = pieces[1:]
+            mention2ids[mention] = ids
+
+    print("[1]Finish reading")
+    result_path = os.path.join(args.data_dir, "{}.pkl".format(args.result_file_name))
+    with open(result_path, 'wb') as fout:
+        pickle.dump(mention2ids, fout)
+        print("[2]Save {}".format(result_path))
+
+
+def get_instance_alias(args):
+    id2mention_path = os.path.join(args.data_dir, 'id2mention.json')
+    id2ent_name_path = os.path.join(args.data_dir, 'id2ent_name.pkl')
+    result_file_path = os.path.join(args.data_dir, "{}.txt".format(args.result_file_name))
+    fout = check_fout(result_file_path)
+    with open(id2mention_path, 'r') as fin:
+        id2mention = json.load(fin)
+        id2ent_name = pickle.load(open(id2ent_name_path, 'rb'))
+        for k, ent_name in id2ent_name.items():
+            if k in id2mention.keys():
+                mentions = id2mention[k]
+                if len(mentions) > 1:
+                    mentions = [mention for mention in mentions if mention != ent_name]
+                    mention_str = "::;".join(mentions)
+                    line = "\t\t".join([ent_name, k, mention_str])
+                    fout.write(line)
+                    fout.write("\n")
+                elif mentions[0] != ent_name:
+                    line = "\t\t".join([ent_name, k, mentions[0]])
+                    fout.write(line)
+                    fout.write("\n")
+
+
 def work():
     parser = argparse.ArgumentParser()
     # path params
@@ -95,12 +147,17 @@ def work():
     parser.add_argument('--src_file', type=str, default='mention_anchors.txt',
                         choices=['mention_anchors.txt', 'bd_instance_ID.txt'])
     parser.add_argument('--result_file_name', type=str, default='id2mention')
-    parser.add_argument('--task', type=str, default='id2mention', choices=['id2mention', 'id2ent_name'])
+    parser.add_argument('--task', type=str, default='id2mention', choices=['id2mention', 'id2ent_name',
+                                                                           'mention2ids', 'instance_alias'])
     args = parser.parse_args()
     if args.task == 'id2mention':
         get_id2mention(args)
     elif args.task == 'id2ent_name':
         get_id2ent_name(args)
+    elif args.task == 'mention2ids':
+        get_mention2ids(args)
+    elif args.task == 'instance_alias':
+        get_instance_alias(args)
 
 
 if __name__ == '__main__':
