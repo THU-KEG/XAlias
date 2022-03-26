@@ -37,7 +37,22 @@ def parse_coref_chain(raw_str: str, document: list, separator: str):
             if mention["mentionType"] != "PRONOMINAL":
                 # Pronoun is not included in alias
                 sent = document[mention["sentenceIndex"]]
-                mention["text"] = separator.join(sent[mention["beginIndex"]:mention["endIndex"]])
+                if separator == " ":
+                    mention["text"] = separator.join(sent[mention["beginIndex"]:mention["endIndex"]])
+                else:
+                    # chinese use "" / english use " " to join
+                    _text = sent[mention["beginIndex"]]
+                    last_is_alpha = _text.encode('UTF-8').isalpha()
+                    for word in sent[mention["beginIndex"] + 1:mention["endIndex"]]:
+                        if word.encode('UTF-8').isalpha():
+                            # Last token Is also en
+                            if last_is_alpha:
+                                _text += " "
+                            last_is_alpha = True
+                        else:
+                            last_is_alpha = False
+                        _text += word
+                    mention["text"] = _text
                 if mention["text"] not in mention_texts:
                     # make sure there is no repeat mentions
                     mention_texts.append(mention["text"])

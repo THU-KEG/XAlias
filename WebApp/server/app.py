@@ -83,8 +83,8 @@ class PostHandler(tornado.web.RequestHandler):
             model = chinese_model
         else:
             model = None
-        alias_list = prompt_with_json(model, clientJson)
-        dict_reply = {"reply_get_prompt_alias": {"alias_list": alias_list}}
+        type2alias_list = prompt_with_json(model, clientJson)
+        dict_reply = {"reply_get_prompt_alias": {"type2alias_list": type2alias_list}}
         jsonReply = json.dumps(dict_reply, ensure_ascii=False)
         return jsonReply
 

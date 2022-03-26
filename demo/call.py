@@ -172,7 +172,7 @@ def prompt_with_json(model, clientJson):
     args.language = clientJson["lang"]
     if clientJson["type"] != 'all':
         args.alias_type = clientJson["type"]
-        pred_words = call_prompt_generation(args, model)
+        pred_words = {clientJson["type"]: call_prompt_generation(args, model)}
     else:
         pred_words = {}
         for alias_type in types:
