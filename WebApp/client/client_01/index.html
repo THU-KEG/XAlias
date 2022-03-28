@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Document</title>
+<!--        <link rel="stylesheet" type="text/css" href="./common.css"/>-->
+<!--        <link rel="stylesheet" type="text/css" href="./index.css"/>-->
+    <link rel="stylesheet" type="text/css" href="{{ static_url("common.css") }}" />
+    <link rel="stylesheet" type="text/css" href="{{ static_url("index.css") }}" />
+
+</head>
+<body>
+<div class="page flex-col">
+    <div class="block1 flex-col">
+        <div class="layer1 flex-col">
+
+            <div class="layer2 flex-col">
+
+                <div class="block3 flex-row">
+                    <span class="word3">Alias&nbsp;Generation</span>
+                </div>
+                <div class="checkapple"
+                     style="display: flex; flex-flow: row wrap; position: absolute; top: 190px; left: 30%; width: 100%; align-items: center;">
+                    <div class="ag-input"
+                         style="align-content: center; position: relative; width: 40%; padding: 0px; border-radius: 0px;">
+                        <!----><input type="text" id="entity" autocomplete="off" placeholder="清华大学" maxlength="20"
+                                      class="ag-input__inner"><!----><!----><!----></div>
+                    <button type="button" class="ag-button" onclick="onNameSubmit();return false"
+                            style="background-color: rgb(220, 109, 6); border-color: rgb(220, 109, 6); color: white;">
+                        <img class="icon6" referrerpolicy="no-referrer" src="{{ static_url("search.png") }}">
+<!--                        <img class="icon6" referrerpolicy="no-referrer" src="search.png">-->
+                    </button>
+                </div>
+                <div class="block4 flex-row justify-between">
+                    <div class="group1 flex-col"></div>
+                    <div class="group2 flex-col"></div>
+                    <span class="word4">CH</span>
+                </div>
+                <span class="word5">中</span>
+                <span class="word6">A</span>
+                <span class="info1">Alias&nbsp;Generation</span>
+
+
+                <img class="pic1"  referrerpolicy="no-referrer" src="{{ static_url("background.png") }}">
+<!--                <img class="pic1"  referrerpolicy="no-referrer" src="background.png">-->
+            </div>
+
+
+            <!--          start timeline-->
+            <ul class="timeline-list">
+                <li class="timeline-item">
+                    <div class="timeline-item_tail"></div>
+                    <div class="timeline-item_node"></div>
+                    <div class="timeline-item_wrapper">
+                        <div class="bd1 flex-col">
+                            <span class="info2">Alias result By Anchor Text Dictionary</span>
+                        </div>
+                        <div class="timeline-item_content">
+                            <p><span id="dict_alias_result"></span></p>
+                        </div>
+
+                    </div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item_tail"></div>
+                    <div class="timeline-item_node"></div>
+                    <div class="timeline-item_wrapper">
+                        <div class="bd1 flex-col">
+                            <span class="info2">Alias result By Co-reference Resolution</span>
+                        </div>
+                        <div class="timeline-item_content">
+                            <p><span id="coref_alias_result"></span></p>
+
+                        </div>
+
+                    </div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item_tail"></div>
+                    <div class="timeline-item_node"></div>
+                    <div class="timeline-item_wrapper">
+                        <div class="bd1 flex-col">
+                            <span class="info2">Alias result By Prompt</span>
+                        </div>
+<!--                        <div class="timeline-item_content" id="prompt_alias_result">-->
+<!--                                <span class="ag-tag ag-tag&#45;&#45;success">-->
+<!--                                <a class="ag-link">-->
+<!--                                    <span>-->
+<!--                                        动·杭州-->
+<!--                                    </span>-->
+<!--                                </a>-->
+<!--                                <div  class="ag-divider&#45;&#45;vertical">-->
+
+<!--                                </div>-->
+<!--                                <span >-5.604</span>-->
+<!--                                </span>-->
+
+<!--                        </div>-->
+
+                    </div>
+                </li>
+
+            </ul>
+            <!--   end  timeline-->
+
+
+            <div class="layer14 flex-col">
+                <div class="layer15 flex-row">
+                    <span class="word8">Alias&nbsp;Generation</span>
+                </div>
+                <div class="layer16 flex-row justify-between">
+                    <span class="txt5">咨询热线：18813130885</span>
+                    <span class="word9">
+                地址：海淀区赛尔网络（启迪科技大厦B座）5层
+              </span>
+                    <span class="info6">电子邮件：1103435855&#64;qq.com</span>
+                </div>
+                <div class="layer17 flex-row">
+                    <span class="word10">京ICP备15029632号-6</span>
+                </div>
+                <div class="layer18 flex-row">
+                    <div class="bd4 flex-col">
+                        <span class="info7">联系我们</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript" src="{{ static_url("jquery-1.8.1.min.js") }}"></script>
+<script type="text/javascript" src="{{ static_url("functionalityAG.js") }}"></script>
+</body>
+</html>

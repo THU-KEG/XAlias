@@ -23,7 +23,7 @@ TYPE_GET_DICT_ALIAS = 2
 # m_infoManager = InfoManager()
 
 # load model
-chinese_model = bminf.models.CPM2(device=params.gpu_id)
+# chinese_model = bminf.models.CPM2(device=params.gpu_id)
 # load coref result
 logging.info("start reading")
 bd_id2coref_alias = json.load(open('/data/tsq/xlink/coref/bd/coref_stanford_parse_all_abstract.json', 'r'))
@@ -80,7 +80,8 @@ class PostHandler(tornado.web.RequestHandler):
 
     def getPromptAliasJson(self, clientJson):
         if clientJson["lang"] == "ch":
-            model = chinese_model
+            # model = chinese_model
+            model = None
         else:
             model = None
         type2alias_list = prompt_with_json(model, clientJson)
@@ -143,8 +144,10 @@ if __name__ == "__main__":
     tornado.options.parse_command_line()
     app = tornado.web.Application(
         handlers=[(r"/", IndexHandler), (r"/alias", PostHandler)],
-        template_path="/home/tsq/ybb/WebApp/client",
-        static_path="/home/tsq/ybb/WebApp/client"
+        # template_path="/home/tsq/ybb/WebApp/client",
+        # static_path="/home/tsq/ybb/WebApp/client"
+        template_path="/home/tsq/ybb/WebApp/client/client_01",
+        static_path="/home/tsq/ybb/WebApp/client/client_01"
     )
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)
