@@ -3,6 +3,7 @@ var homeUrl = "http://103.238.162.32:5314/"; // place here the URL to the server
 
 function sendRequest1(jsonObj, result_alias_type, reply_type) {
     // document.getElementById(result_alias_type).innerHTML = "waiting";
+    change_timeline_node(result_alias_type, "timeline_waiting.png");
     console.log("sendRequest1");
     var data = JSON.stringify(jsonObj);
     console.log(data);
@@ -26,8 +27,25 @@ function sendRequest1(jsonObj, result_alias_type, reply_type) {
             console.log(JSON.stringify(data));
             // document.getElementById(result_alias_type).textContent = JSON.stringify(data);
             fill_html_with_json(JSON.parse(data), result_alias_type, reply_type);
+            change_timeline_node(result_alias_type, "timeline_finish.png");
         }
     });
+}
+
+function clearAll() {
+    var parent_id_list = ["dict_alias_result", "coref_alias_result", "prompt_alias_result"];
+    var i;
+    for (i = 0; i < parent_id_list.length; i++) {
+        clearAllNode(document.getElementById(parent_id_list[i]));
+        change_timeline_node(parent_id_list[i], "timeline_empty.png");
+    }
+}
+
+function clearAllNode(parentNode) {
+    while (parentNode.firstChild) {
+        var oldNode = parentNode.removeChild(parentNode.firstChild);
+        oldNode = null;
+    }
 }
 
 function onNameSubmit() {
@@ -38,27 +56,28 @@ function onNameSubmit() {
     var alias_type = "all";
     // send the server the entity name:
     var clientId = 1;
+    clearAll();
     sendRequest1({
         "clientId": clientId,
         "request_get_dict_alias": {},
         "entity": entity,
         "lang": lang,
         "type": alias_type
-    }, "dict_alias_result", "reply_get_dict_alias")
+    }, "dict_alias_result", "reply_get_dict_alias");
     sendRequest1({
         "clientId": clientId,
         "request_get_coref_alias": {},
         "entity": entity,
         "lang": lang,
         "type": alias_type
-    }, "coref_alias_result", "reply_get_coref_alias")
-    // sendRequest1({
-    //     "clientId": clientId,
-    //     "request_get_prompt_alias": {},
-    //     "entity": entity,
-    //     "lang": lang,
-    //     "type": alias_type
-    // }, "prompt_alias_result", "reply_get_prompt_alias")
+    }, "coref_alias_result", "reply_get_coref_alias");
+    sendRequest1({
+        "clientId": clientId,
+        "request_get_prompt_alias": {},
+        "entity": entity,
+        "lang": lang,
+        "type": alias_type
+    }, "prompt_alias_result", "reply_get_prompt_alias");
 }
 
 
@@ -98,4 +117,12 @@ function fill_html_with_json(json_data, result_alias_type, reply_type) {
         }
         addElementSpan(result_alias_type, alias_list[j], j);
     }
+}
+
+function change_timeline_node(result_alias_type, new_img_name) {
+    var parent_id = result_alias_type + "_timeline_node";
+    var parent = document.getElementById(parent_id);
+    var inner = '<img className="icon1" referrerPolicy="no-referrer" src=' + new_img_name;
+    parent.innerHTML = inner + '/>';
+
 }

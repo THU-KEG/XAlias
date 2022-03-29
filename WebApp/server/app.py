@@ -5,6 +5,7 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 import tornado.web
+from collections import Counter
 from tornado.options import define, options
 import WebApp.server.params as params
 from demo.call import prompt_with_json, coref_with_json, dict_with_json
@@ -23,7 +24,7 @@ TYPE_GET_DICT_ALIAS = 2
 # m_infoManager = InfoManager()
 
 # load model
-# chinese_model = bminf.models.CPM2(device=params.gpu_id)
+chinese_model = bminf.models.CPM2(device=params.gpu_id)
 # load coref result
 logging.info("start reading")
 bd_id2coref_alias = json.load(open('/data/tsq/xlink/coref/bd/coref_stanford_parse_all_abstract.json', 'r'))
@@ -80,12 +81,12 @@ class PostHandler(tornado.web.RequestHandler):
 
     def getPromptAliasJson(self, clientJson):
         if clientJson["lang"] == "ch":
-            # model = chinese_model
-            model = None
+            model = chinese_model
         else:
             model = None
         type2alias_list = prompt_with_json(model, clientJson)
-        dict_reply = {"reply_get_prompt_alias": {"type2alias_list": type2alias_list}}
+        alias_list = self.sort_prompt_type2alias_list(type2alias_list)
+        dict_reply = {"reply_get_prompt_alias": {"alias_list": alias_list}}
         jsonReply = json.dumps(dict_reply, ensure_ascii=False)
         return jsonReply
 
@@ -133,6 +134,21 @@ class PostHandler(tornado.web.RequestHandler):
 
     def getErrorJson(self, error):
         return {"err": error}
+
+    def sort_prompt_type2alias_list(self, type2alias_list):
+        logging.info("start sort_prompt_type2alias_list")
+        aliases = []
+        for alias_type, template2alias_list in type2alias_list.items():
+            for alias_list in template2alias_list:
+                for alias in alias_list:
+                    aliases.append(alias)
+        logging.info("aliases")
+        logging.info(aliases)
+        c = Counter(aliases).most_common(params.TOP_K)
+        logging.info("counter")
+        logging.info(dict(c))
+        final_alias_list = [pair[0] for pair in c]
+        return final_alias_list
 
 
 class IndexHandler(tornado.web.RequestHandler):

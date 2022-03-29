@@ -63,8 +63,8 @@
 }
 
 .icon1 {
-  width: 26px;
-  height: 26px;
+  width: 38px;
+  height: 38px;
 }
 
 .layer4 {
@@ -672,7 +672,7 @@
   width: 9px;
   height: 9px;
   background: #fff;
-  border:3px solid #2395FF
+  /*border:3px solid #2395FF*/
 }
 .timeline-item_wrapper{
   position: relative;
