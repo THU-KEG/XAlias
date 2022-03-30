@@ -191,7 +191,7 @@ def coref_with_json(id2coref_alias, mention2ids, clientJson):
             for coref_alias in coref_alias_list:
                 coref_chain = coref_alias["coref_chain"]
                 for mention in coref_chain:
-                    if mention["text"] != src_word:
+                    if mention["text"] != src_word and mention["text"] not in alias_list:
                         alias_list.append(mention["text"])
             raw_chains.extend(coref_alias_list)
     return alias_list, raw_chains

@@ -82,6 +82,7 @@ class PostHandler(tornado.web.RequestHandler):
     def getPromptAliasJson(self, clientJson):
         if clientJson["lang"] == "ch":
             model = chinese_model
+            # model = None
         else:
             model = None
         type2alias_list = prompt_with_json(model, clientJson)

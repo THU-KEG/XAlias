@@ -4,10 +4,10 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Document</title>
-        <link rel="stylesheet" type="text/css" href="./common.css"/>
-        <link rel="stylesheet" type="text/css" href="./index.css"/>
-<!--    <link rel="stylesheet" type="text/css" href="{{ static_url("common.css") }}" />-->
-<!--    <link rel="stylesheet" type="text/css" href="{{ static_url("index.css") }}" />-->
+<!--        <link rel="stylesheet" type="text/css" href="./common.css"/>-->
+<!--        <link rel="stylesheet" type="text/css" href="./index.css"/>-->
+    <link rel="stylesheet" type="text/css" href="{{ static_url("common.css") }}" />
+    <link rel="stylesheet" type="text/css" href="{{ static_url("index.css") }}" />
 
 </head>
 <body>
@@ -28,8 +28,8 @@
                                       class="ag-input__inner" value="清华大学"><!----><!----><!----></div>
                     <button type="button" class="ag-button" onclick="onNameSubmit();return false"
                             style="color: white;">
-<!--                        <img class="icon6" referrerpolicy="no-referrer" src="{{ static_url("search.png") }}">-->
-                        <img class="icon6" referrerpolicy="no-referrer" src="search.png">
+                        <img class="icon6" referrerpolicy="no-referrer" src="{{ static_url("search.png") }}">
+<!--                        <img class="icon6" referrerpolicy="no-referrer" src="search.png">-->
                     </button>
                 </div>
                 <div class="block4 flex-row justify-between">
@@ -42,8 +42,8 @@
                 <span class="info1">Alias&nbsp;Generation</span>
 
 
-<!--                <img class="pic1"  referrerpolicy="no-referrer" src="{{ static_url("background.png") }}">-->
-                <img class="pic1"  referrerpolicy="no-referrer" src="background.png">
+                <img class="pic1"  referrerpolicy="no-referrer" src="{{ static_url("background.png") }}">
+<!--                <img class="pic1"  referrerpolicy="no-referrer" src="background.png">-->
             </div>
 
 
@@ -55,7 +55,7 @@
                         <img
                                 class="icon1"
                                 referrerpolicy="no-referrer"
-                                src="timeline_empty.png"
+                                src="{{ static_url("timeline_empty.png") }}"
                         />
                     </div>
                     <div class="timeline-item_wrapper">
@@ -74,7 +74,7 @@
                         <img
                                 class="icon1"
                                 referrerpolicy="no-referrer"
-                                src="timeline_empty.png"
+                                src="{{ static_url("timeline_empty.png") }}"
                         />
                     </div>
                     <div class="timeline-item_wrapper">
@@ -94,7 +94,7 @@
                         <img
                                 class="icon1"
                                 referrerpolicy="no-referrer"
-                                src="timeline_empty.png"
+                                src="{{ static_url("timeline_empty.png") }}"
                         />
                     </div>
                     <div class="timeline-item_wrapper">
@@ -111,7 +111,12 @@
 
             </ul>
             <!--   end  timeline-->
-
+            <div id="coref_modal" class="coref_modal">
+                <div class="coref_modal_content">
+                    <span class="close">&times;</span>
+                    <p id="coref_text" >...</p>
+                </div>
+            </div>
 
             <div class="layer14 flex-col">
                 <div class="layer15 flex-row">
@@ -138,7 +143,7 @@
 </div>
 
 
-<!--<script type="text/javascript" src="{{ static_url("jquery-1.8.1.min.js") }}"></script>-->
-<!--<script type="text/javascript" src="{{ static_url("functionalityAG.js") }}"></script>-->
+<script type="text/javascript" src="{{ static_url("jquery-1.8.1.min.js") }}"></script>
+<script type="text/javascript" src="{{ static_url("functionalityAG.js") }}"></script>
 </body>
 </html>
