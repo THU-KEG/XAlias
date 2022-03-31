@@ -1,4 +1,6 @@
 import argparse
+import logging
+
 import bminf
 import numpy as np
 import stanfordnlp
@@ -10,6 +12,9 @@ from collections import Counter
 from typing import List, Tuple
 
 signal_arg_keys = ['max_tokens_scale', 'top_n_range']
+
+
+# signal_arg_keys = []
 
 
 def strip_redundant_words(words, max_overlap_scale: float):
@@ -428,6 +433,78 @@ class Verbalizer(object):
         elif self.args.vector_similarity == 'euclid':
             final_similarity = np.linalg.norm(np.array(src_vec) - np.array(pred_vec))
         return float(final_similarity)
+
+    def cpm2_fast_gen_by_prompt(self, prefix_type, src_word, task_def, alias_tables=None) \
+            -> Tuple[List[List[str]], List[List]]:
+        pattern2beams = [[] for _ in range(self.pattern_num(prefix_type))]
+        for alias_table in alias_tables:
+            input_texts = self.convert_all(prefix_type, src_word, task_def, alias_table)
+            for pattern_id, input_text in enumerate(input_texts):
+                if self.args.task == 'fill':
+                    # fill_blank(model, input_text, kwargs)
+                    return [['']], [[]]
+                else:
+                    beams = []
+                    if 'num_beams' in self.kwargs.keys():
+                        # beam search
+                        beams = self.cpm2_beam_search(input_text)
+                    else:
+                        # sample with different params
+                        beams.append(self.cpm2_sample_text(input_text))
+                    pattern2beams[pattern_id].extend(beams)
+        # process and truncate
+        logging.info("raw pattern2beams are:")
+        logging.info(pattern2beams)
+        final_pattern2strings = []
+        for beams in pattern2beams:
+            pure_strings = self.fast_process(beams)
+            final_pattern2strings.append(pure_strings[:self.args.num_return_sequences])
+        return final_pattern2strings, pattern2beams
+
+    def fast_process(self, beams: List[str]) -> List[str]:
+        # default strategy is None
+        tidy_beams = []
+        # deal with punctuation
+        separated_chars = '，。\n'
+        stopped_chars = "！？，｡、＂＇（）：；\n“"
+        for beam in beams:
+            striped = beam.strip(stopped_chars)
+            has_separated_char = False
+            for separated_char in separated_chars:
+                if separated_char in striped:
+                    sp_words = striped.split(separated_char)
+                    for sp_word in sp_words:
+                        if len(sp_word) > 0:
+                            tidy_beams.append(sp_word)
+                    has_separated_char = True
+            if not has_separated_char and len(striped) > 0:
+                tidy_beams.append(striped)
+        logging.info("tidy_beams are:")
+        logging.info(tidy_beams)
+        # sort by frequency of words
+        counter = Counter(tidy_beams)
+        ranked_string_tuples = counter.most_common(self.args.num_return_sequences)
+        ranked_strings = [t[0] for t in ranked_string_tuples]
+        logging.info("ranked_strings are:")
+        logging.info(ranked_strings)
+        # deal with redundancy
+        tidy_strings = strip_redundant_words(ranked_strings, self.args.max_overlap_scale)
+        return tidy_strings
+
+    def cpm2_sample_text(self, text) -> str:
+        stoped = False
+        total_len = 0
+        result_string = ""
+        while not stoped:
+            if total_len > self.kwargs['max_tokens']:
+                break
+            value, stoped = self.model.generate(
+                text, **self.kwargs
+            )
+            result_string += value
+            total_len += len(value)
+
+        return result_string
 
 
 def get_cos_similar_matrix(v1, v2):

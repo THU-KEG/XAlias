@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 import time
 import random
 import requests
@@ -16,6 +17,14 @@ from demo.params import add_decode_param, reduce_args, add_test_param
 proxies = {"https": "http://106.15.197.250:8001"}
 types = ['prefix_extend', 'prefix_reduce', 'suffix_extend', 'suffix_reduce',
          'expansion', 'abbreviation', 'punctuation', 'synonym']
+punctuation = "！？，｡＇／：；＝＠＼＾＿｀｜～､、〃和与跟同及,."
+
+
+def contain_bad_punctuation(text):
+    for ch in text:
+        if ch in punctuation:
+            return True
+    return False
 
 
 def get_alias_example_tables(args):
@@ -46,9 +55,16 @@ def call_prompt_generation(args, model=None):
     verbalizer.set_cpm2(model, cpm2_kwargs, args)
     src_word = args.src_word
     alias_tables = get_alias_example_tables(args)
-    pred_words, pattern2beams = verbalizer.cpm2_gen_by_prompt(args.alias_type, src_word,
-                                                              args.task_definition,
-                                                              alias_tables)
+    if args.rank_strategy == "frequency":
+        pred_words, pattern2beams = verbalizer.cpm2_fast_gen_by_prompt(args.alias_type, src_word,
+                                                                       args.task_definition,
+                                                                       alias_tables)
+    else:
+        pred_words, pattern2beams = verbalizer.cpm2_gen_by_prompt(args.alias_type, src_word,
+                                                                  args.task_definition,
+                                                                  alias_tables)
+    logging.info("Generated pred_words are:")
+    logging.info(pred_words)
     return pred_words
 
 
@@ -192,7 +208,8 @@ def coref_with_json(id2coref_alias, mention2ids, clientJson):
                 coref_chain = coref_alias["coref_chain"]
                 for mention in coref_chain:
                     if mention["text"] != src_word and mention["text"] not in alias_list:
-                        alias_list.append(mention["text"])
+                        if not contain_bad_punctuation(mention["text"]):
+                            alias_list.append(mention["text"])
             raw_chains.extend(coref_alias_list)
     return alias_list, raw_chains
 

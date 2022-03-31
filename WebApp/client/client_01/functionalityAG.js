@@ -1,6 +1,7 @@
 var requestUrl = "/alias";
 var homeUrl = "http://103.238.162.32:5314/"; // place here the URL to the server
 var raw_coref_chains;
+var entity_name;
 
 function sendRequest1(jsonObj, result_alias_type, reply_type) {
     // document.getElementById(result_alias_type).innerHTML = "waiting";
@@ -51,6 +52,7 @@ function clearAllNode(parentNode) {
 
 function onNameSubmit() {
     var entity = $("#entity").val();
+    entity_name = entity;
     // var lang = $("input[name='lang']:checked").val();
     // var alias_type = $("#alias_type").val();
     var lang = "ch";
@@ -162,8 +164,15 @@ function onClickCorefChain(alias_mention) {
         var mention_pair = raw_chain["coref_chain"];
         for (j = 0; j < mention_pair.length; j++) {
             if (mention_pair[j]["text"] == alias_mention) {
-                src_mention = mention_pair[1 - j];
                 tgt_mention = mention_pair[j];
+                // some coref_chain has 3 mentions or more
+                src_mention = mention_pair[mention_pair.length - j];
+                var k;
+                for (k = 0; k < mention_pair.length; k++) {
+                    if (mention_pair[k]["text"] == entity_name) {
+                        src_mention = mention_pair[k];
+                    }
+                }
                 coref_document = raw_chain["document"];
                 break;
             }

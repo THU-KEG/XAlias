@@ -100,7 +100,7 @@ def add_decode_param(parser: argparse.ArgumentParser):
     # beam search
     parser.add_argument('--num_beams', type=int, default=None)
     parser.add_argument('--num_return_sequences', type=int, default=500)
-    parser.add_argument('--num_generate_sequences', type=int, default=4)
+    parser.add_argument('--num_generate_sequences', type=int, default=1)
     return parser
 
 
@@ -136,14 +136,14 @@ def add_test_param(parser: argparse.ArgumentParser):
     parser.add_argument('--extra_prompt', type=str, default='task_specific',
                         choices=['task_specific', 'prefix_tuning'])
     parser.add_argument('--task_specific_prompt_num', type=int, default=4)
-    parser.add_argument('--alias_table_num', type=int, default=4, help="how many  alias_tables will be sampled")
+    parser.add_argument('--alias_table_num', type=int, default=1, help="how many  alias_tables will be sampled")
     parser.add_argument('--task_definition', action="store_true")
     parser.add_argument('--alias_example_strategy', type=str, default='random',
                         choices=['random', 'cluster'])
     parser.add_argument('--alias_data_source', type=str, default='support_pool',
                         choices=['whole_dataset', 'support_pool'])
     # re-rank
-    parser.add_argument('--rank_strategy', type=str, default='prob_freq',
+    parser.add_argument('--rank_strategy', type=str, default='frequency',
                         choices=['random', 'frequency', 'probability', 'prob_freq', 'ppl'])
     parser.add_argument('--freq_portion', type=float, default=0.5, help="how many portion will frequency has in weight")
     # parser.add_argument('--calculate_prob', type=str, default='origin',
