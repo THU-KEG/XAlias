@@ -37,6 +37,8 @@ logging.info("finish reading")
 
 
 class PostHandler(tornado.web.RequestHandler):
+    entity_name = ""
+
     def options(self):
         # no body
         logging.debug('Received OPTIONS request')
@@ -48,6 +50,7 @@ class PostHandler(tornado.web.RequestHandler):
             # load the json received from the client:
             clientJson = json.loads(self.request.body.decode('utf-8'))
             logging.info('Got JSON data: ' + str(clientJson))
+            self.entity_name = clientJson["entity"]
             requestType, clientId = self.getRequestTypeFromClientJson(clientJson)
             logging.info('Got requestType: ' + str(requestType))
             # DEBUG:
@@ -138,17 +141,23 @@ class PostHandler(tornado.web.RequestHandler):
 
     def sort_prompt_type2alias_list(self, type2alias_list):
         logging.info("start sort_prompt_type2alias_list")
-        aliases = []
+        final_alias_list = []
         for alias_type, template2alias_list in type2alias_list.items():
             for alias_list in template2alias_list:
                 for alias in alias_list:
-                    aliases.append(alias)
-        logging.info("aliases")
-        logging.info(aliases)
-        c = Counter(aliases).most_common(params.TOP_K)
-        logging.info("counter")
-        logging.info(dict(c))
-        final_alias_list = [pair[0] for pair in c]
+                    has_final_alias = False
+                    for final_alias in final_alias_list:
+                        if alias == final_alias["text"]:
+                            final_alias["score"] += 1
+                            final_alias["types"].append(alias_type)
+                            has_final_alias = True
+                            break
+                    if not has_final_alias and alias != self.entity_name:
+                        # init
+                        alias_data = {"text": alias, "score": 1, "types": [alias_type]}
+                        final_alias_list.append(alias_data)
+        final_alias_list = sorted(final_alias_list, key=lambda k: (k.get('score')), reverse=True)
+        logging.info(final_alias_list)
         return final_alias_list
 
 

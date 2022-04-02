@@ -207,10 +207,21 @@ def coref_with_json(id2coref_alias, mention2ids, clientJson):
             for coref_alias in coref_alias_list:
                 coref_chain = coref_alias["coref_chain"]
                 for mention in coref_chain:
-                    if mention["text"] != src_word and mention["text"] not in alias_list:
-                        if not contain_bad_punctuation(mention["text"]):
-                            alias_list.append(mention["text"])
+                    if mention["text"] != src_word:
+                        has_exist = False
+                        for _exist_alias in alias_list:
+                            if _exist_alias["text"] == mention["text"]:
+                                # frequency add 1
+                                _exist_alias["score"] += 1
+                                has_exist = True
+                                break
+                        if not has_exist and not contain_bad_punctuation(mention["text"]):
+                            # init
+                            alias_data = {"text": mention["text"], "score": 1}
+                            alias_list.append(alias_data)
+
             raw_chains.extend(coref_alias_list)
+    alias_list = sorted(alias_list, key=lambda k: (k.get('score')), reverse=True)
     return alias_list, raw_chains
 
 
@@ -221,10 +232,13 @@ def dict_with_json(id2mention, mention2ids, clientJson):
     for _id in ids:
         if _id in id2mention.keys():
             mentions = id2mention[_id]
-            for mention in mentions:
-                if mention != src_word:
-                    alias_list.append(mention)
-
+            for i, mention_text in enumerate(mentions):
+                if mention_text != src_word:
+                    # init
+                    # TODO use score in xlink to replace
+                    alias_data = {"text": mention_text, "score": i}
+                    alias_list.append(alias_data)
+    alias_list = sorted(alias_list, key=lambda k: (k.get('score')), reverse=True)
     return alias_list
 
 
