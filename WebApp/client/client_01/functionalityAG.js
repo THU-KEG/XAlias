@@ -3,6 +3,7 @@ var homeUrl = "http://103.238.162.32:5314/"; // place here the URL to the server
 var raw_coref_chains;
 var pormpt_alias_result;
 var entity_name;
+var top_k = 5;
 var alias_type2explain = {
     'prefix_extend': '前缀扩写,比如 夏宫::=彼得大帝夏宫',
     'prefix_reduce': '前缀缩写,比如 晋祠水母楼::=水母楼',
@@ -13,6 +14,12 @@ var alias_type2explain = {
     'synonym': '同义词,比如 波尔多红酒::=波尔多葡萄酒',
     'punctuation': '标点改写,比如 洛奇::=《洛奇》'
 };
+
+var result_alias_type2alias_res_dict = {
+    "dict_alias_result": null,
+    "coref_alias_result": null,
+    "prompt_alias_result": null,
+}
 
 function sendRequest1(jsonObj, result_alias_type, reply_type) {
     // document.getElementById(result_alias_type).innerHTML = "waiting";
@@ -26,6 +33,7 @@ function sendRequest1(jsonObj, result_alias_type, reply_type) {
         dataType: "json",
         // contentType: 'application/json',
         data: data,
+        // async: false,
         success: function (result) {
             console.log("jQuery success");
         },
@@ -39,14 +47,16 @@ function sendRequest1(jsonObj, result_alias_type, reply_type) {
             data = $.parseJSON(xhr.responseText);
             console.log(JSON.stringify(data));
             // document.getElementById(result_alias_type).textContent = JSON.stringify(data);
-            fill_html_with_json(JSON.parse(data), result_alias_type, reply_type);
+            var alias_res_dict = JSON.parse(data);
+            fill_html_with_json(alias_res_dict, result_alias_type, reply_type);
             change_timeline_node(result_alias_type, "timeline_finish.png");
+            check_ensemble_alias(alias_res_dict[reply_type], result_alias_type);
         }
     });
 }
 
 function clearAll() {
-    var parent_id_list = ["dict_alias_result", "coref_alias_result", "prompt_alias_result"];
+    var parent_id_list = ["dict_alias_result", "coref_alias_result", "prompt_alias_result", "ensemble_alias_result"];
     var i;
     for (i = 0; i < parent_id_list.length; i++) {
         clearAllNode(document.getElementById(parent_id_list[i]));
@@ -71,6 +81,8 @@ function onNameSubmit() {
     // send the server the entity name:
     var clientId = 1;
     clearAll();
+    // wait for 3 sources
+    change_timeline_node("ensemble_alias_result", "timeline_waiting.png");
     sendRequest1({
         "clientId": clientId,
         "request_get_dict_alias": {},
@@ -95,7 +107,7 @@ function onNameSubmit() {
 }
 
 
-function addElementSpan(inner_dict, parent_id, alias_mention, alias_score) {
+function addElementSpan(parent_id, alias_mention, alias_score) {
     var parent = document.getElementById(parent_id);
     //add span
     var span = document.createElement("span");
@@ -139,10 +151,14 @@ function fill_html_with_json(json_data, result_alias_type, reply_type) {
         pormpt_alias_result = inner_dict;
     }
     for (j = 0; j < len; j++) {
-        if (j > 5) {
+        if (j > top_k) {
             break;
         }
-        addElementSpan(inner_dict, result_alias_type, alias_list[j]["text"], alias_list[j]["score"]);
+        addElementSpan(result_alias_type, alias_list[j]["text"], alias_list[j]["score"]);
+    }
+    // add empty introduction
+    if (len == 0) {
+        add_empty_introduction(result_alias_type)
     }
 }
 
@@ -189,8 +205,12 @@ function onClickCorefChain(alias_mention) {
     for (i = 0; i < coref_document.length; i++) {
         var sentence = coref_document[i];
         for (j = 0; j < sentence.length; j++) {
-            final_coref_text = checkMentionSpanEnd(i, j, src_mention, final_coref_text);
-            final_coref_text = checkMentionSpanEnd(i, j, tgt_mention, final_coref_text);
+            if (src_mention) {
+                final_coref_text = checkMentionSpanEnd(i, j, src_mention, final_coref_text);
+            }
+            if (tgt_mention) {
+                final_coref_text = checkMentionSpanEnd(i, j, tgt_mention, final_coref_text);
+            }
             final_coref_text = final_coref_text + sentence[j];
         }
     }
@@ -266,3 +286,67 @@ function openModal() {
         }
     }
 }
+
+function add_empty_introduction(result_alias_type) {
+    document.getElementById(result_alias_type).innerText = "There is no alias result for this source.";
+}
+
+
+function ensemble_alias_results(dict_alias_res_dict, coref_alias_res_dict, prompt_alias_res_dict) {
+    var resources = [dict_alias_res_dict, coref_alias_res_dict, prompt_alias_res_dict];
+    var i, j, text;
+    var text2freq = {};
+    // count the frequency
+    for (i = 0; i < resources.length; i++) {
+        var res_dict = resources[i];
+        var alias_list = res_dict["alias_list"];
+        for (j = 0; j < alias_list.length; j++) {
+            text = alias_list[j]["text"];
+            if (text in text2freq) {
+                text2freq[text] += 1;
+            } else {
+                text2freq[text] = 1;
+            }
+        }
+    }
+    // deep copy
+    var _text2freq = JSON.parse(JSON.stringify(text2freq));
+    // sort
+    var sorted_text2freq = Object.keys(text2freq).sort(function (a, b) {
+        return text2freq[b] - text2freq[a]
+    });
+    // display ensemble result
+    var k;
+    i = 0;
+    for (k in sorted_text2freq) {
+        if (i > top_k) {
+            break;
+        }
+        addElementSpan("ensemble_alias_result", sorted_text2freq[k], _text2freq[sorted_text2freq[k]]);
+        i++;
+    }
+    change_timeline_node("ensemble_alias_result", "timeline_finish.png");
+}
+
+function check_ensemble_alias(inner_dict, result_alias_type) {
+    // ensemble the results
+    result_alias_type2alias_res_dict[result_alias_type] = inner_dict;
+    var k;
+    for (k in result_alias_type2alias_res_dict) {
+        if (result_alias_type2alias_res_dict[k] == null) {
+            return;
+        }
+    }
+    var dict_alias_res_dict = result_alias_type2alias_res_dict["dict_alias_result"];
+    var coref_alias_res_dict = result_alias_type2alias_res_dict["coref_alias_result"];
+    var prompt_alias_res_dict = result_alias_type2alias_res_dict["prompt_alias_result"];
+    ensemble_alias_results(dict_alias_res_dict, coref_alias_res_dict, prompt_alias_res_dict);
+
+    // init again when finish
+    result_alias_type2alias_res_dict = {
+        "dict_alias_result": null,
+        "coref_alias_result": null,
+        "prompt_alias_result": null,
+    }
+}
+
