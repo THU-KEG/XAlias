@@ -216,6 +216,8 @@ function onClickCorefChain(alias_mention) {
     }
 
     document.getElementById('coref_text').innerHTML = final_coref_text;
+    // head line
+    document.getElementById('modal_head_text').innerHTML = "Source document from Wikipedia";
 }
 
 
@@ -268,6 +270,8 @@ function onClickAlias(alias_mention) {
     }
     final_coref_text += "</ul>";
     document.getElementById('coref_text').innerHTML = final_coref_text;
+    // head line
+    document.getElementById('modal_head_text').innerHTML = "Explanation of alias types";
 }
 
 function openModal() {
@@ -288,13 +292,14 @@ function openModal() {
 }
 
 function add_empty_introduction(result_alias_type) {
+    document.getElementById(result_alias_type).setAttribute('class', "empty-introduction");
     document.getElementById(result_alias_type).innerText = "There is no alias result for this source.";
 }
 
 
 function ensemble_alias_results(dict_alias_res_dict, coref_alias_res_dict, prompt_alias_res_dict) {
     var resources = [dict_alias_res_dict, coref_alias_res_dict, prompt_alias_res_dict];
-    var i, j, text;
+    var i, j, text, score;
     var text2freq = {};
     // count the frequency
     for (i = 0; i < resources.length; i++) {
@@ -302,10 +307,11 @@ function ensemble_alias_results(dict_alias_res_dict, coref_alias_res_dict, promp
         var alias_list = res_dict["alias_list"];
         for (j = 0; j < alias_list.length; j++) {
             text = alias_list[j]["text"];
+            score = alias_list[j]["score"];
             if (text in text2freq) {
-                text2freq[text] += 1;
+                text2freq[text] += score;
             } else {
-                text2freq[text] = 1;
+                text2freq[text] = score;
             }
         }
     }
@@ -350,3 +356,17 @@ function check_ensemble_alias(inner_dict, result_alias_type) {
     }
 }
 
+function onSuggestSearch(input_entity) {
+    var entity_html = document.getElementById('entity');
+    entity_html.setAttribute('value', input_entity);
+    onNameSubmit();
+}
+
+$('#entity').on('keypress', function (event) {
+
+    if (event.keyCode == 13) {
+        // key event is enter
+        onNameSubmit();
+        return false;
+    }
+});

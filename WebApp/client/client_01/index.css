@@ -213,7 +213,7 @@
   height: 105px;
   display: block;
   overflow-wrap: break-word;
-  color: rgba(96, 154, 210, 0.62);
+  color: rgba(1, 82, 217, 1);
   font-size: 70px;
   letter-spacing: 4px;
   font-family: RobotoSlab-Regular;
@@ -827,4 +827,23 @@
   color: black;
   text-decoration: none;
   cursor: pointer;
+}
+
+.suggest-search {
+  cursor: pointer;
+  color: #409eff;
+  font-family: PingFangSC-Regular;
+}
+
+.empty-introduction {
+  font-family: HelveticaNeue-Medium;
+  font-size: 18px;
+}
+
+.modal-head {
+  border-radius: 8px;
+  background-color: rgba(240, 240, 240, 1);
+  margin-top: 2px;
+  padding: 6px;
+  width: 100%;
 }

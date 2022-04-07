@@ -5,6 +5,7 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 import tornado.web
+import numpy as np
 from collections import Counter
 from tornado.options import define, options
 import WebApp.server.params as params
@@ -90,7 +91,7 @@ class PostHandler(tornado.web.RequestHandler):
             model = None
         type2alias_list = prompt_with_json(model, clientJson)
         alias_list = self.sort_prompt_type2alias_list(type2alias_list)
-        dict_reply = {"reply_get_prompt_alias": {"alias_list": alias_list}}
+        dict_reply = {"reply_get_prompt_alias": {"alias_list": self.normalize(alias_list)}}
         jsonReply = json.dumps(dict_reply, ensure_ascii=False)
         return jsonReply
 
@@ -102,7 +103,7 @@ class PostHandler(tornado.web.RequestHandler):
             mention2ids = wiki_mention2ids
             id2coref_alias = wiki_id2coref_alias
         alias_list, raw_chains = coref_with_json(id2coref_alias, mention2ids, clientJson)
-        dict_reply = {"reply_get_coref_alias": {"alias_list": alias_list, "raw_chains": raw_chains}}
+        dict_reply = {"reply_get_coref_alias": {"alias_list": self.normalize(alias_list), "raw_chains": raw_chains}}
         jsonReply = json.dumps(dict_reply, ensure_ascii=False)
         return jsonReply
 
@@ -114,7 +115,7 @@ class PostHandler(tornado.web.RequestHandler):
             id2mention = wiki_id2mention
             mention2ids = wiki_mention2ids
         alias_list = dict_with_json(id2mention, mention2ids, clientJson)
-        dict_reply = {"reply_get_dict_alias": {"alias_list": alias_list}}
+        dict_reply = {"reply_get_dict_alias": {"alias_list": self.normalize(alias_list)}}
         jsonReply = json.dumps(dict_reply, ensure_ascii=False)
         return jsonReply
 
@@ -159,6 +160,20 @@ class PostHandler(tornado.web.RequestHandler):
         final_alias_list = sorted(final_alias_list, key=lambda k: (k.get('score')), reverse=True)
         logging.info(final_alias_list)
         return final_alias_list
+
+    def normalize(self, alias_list):
+        def z_normalization(x, mu, sigma):
+            if sigma == 0:
+                return 0
+            x = (x - mu) / sigma
+            return x
+
+        scores = [_data["score"] for _data in alias_list]
+        avg = np.average(scores)
+        _sigma = np.std(scores)
+        for _data in alias_list:
+            _data["score"] = z_normalization(_data["score"], avg, _sigma)
+        return alias_list
 
 
 class IndexHandler(tornado.web.RequestHandler):

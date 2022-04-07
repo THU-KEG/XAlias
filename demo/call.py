@@ -199,47 +199,53 @@ def prompt_with_json(model, clientJson):
 
 def coref_with_json(id2coref_alias, mention2ids, clientJson):
     src_word = clientJson["entity"]
-    ids = mention2ids[src_word]
-    alias_list, raw_chains = [], []
-    for _id in ids:
-        if _id in id2coref_alias.keys():
-            coref_alias_list = id2coref_alias[_id]
-            for coref_alias in coref_alias_list:
-                coref_chain = coref_alias["coref_chain"]
-                for mention in coref_chain:
-                    if mention["text"] != src_word:
-                        has_exist = False
-                        for _exist_alias in alias_list:
-                            if _exist_alias["text"] == mention["text"]:
-                                # frequency add 1
-                                _exist_alias["score"] += 1
-                                has_exist = True
-                                break
-                        if not has_exist and not contain_bad_punctuation(mention["text"]):
-                            # init
-                            alias_data = {"text": mention["text"], "score": 1}
-                            alias_list.append(alias_data)
+    try:
+        ids = mention2ids[src_word]
+        alias_list, raw_chains = [], []
+        for _id in ids:
+            if _id in id2coref_alias.keys():
+                coref_alias_list = id2coref_alias[_id]
+                for coref_alias in coref_alias_list:
+                    coref_chain = coref_alias["coref_chain"]
+                    for mention in coref_chain:
+                        if mention["text"] != src_word:
+                            has_exist = False
+                            for _exist_alias in alias_list:
+                                if _exist_alias["text"] == mention["text"]:
+                                    # frequency add 1
+                                    _exist_alias["score"] += 1
+                                    has_exist = True
+                                    break
+                            if not has_exist and not contain_bad_punctuation(mention["text"]):
+                                # init
+                                alias_data = {"text": mention["text"], "score": 1}
+                                alias_list.append(alias_data)
 
-            raw_chains.extend(coref_alias_list)
-    alias_list = sorted(alias_list, key=lambda k: (k.get('score')), reverse=True)
-    return alias_list, raw_chains
+                raw_chains.extend(coref_alias_list)
+        alias_list = sorted(alias_list, key=lambda k: (k.get('score')), reverse=True)
+        return alias_list, raw_chains
+    except KeyError:
+        return [], []
 
 
 def dict_with_json(id2mention, mention2ids, clientJson):
     src_word = clientJson["entity"]
-    ids = mention2ids[src_word]
-    alias_list = []
-    for _id in ids:
-        if _id in id2mention.keys():
-            mentions = id2mention[_id]
-            for i, mention_text in enumerate(mentions):
-                if mention_text != src_word:
-                    # init
-                    # TODO use score in xlink to replace
-                    alias_data = {"text": mention_text, "score": i}
-                    alias_list.append(alias_data)
-    alias_list = sorted(alias_list, key=lambda k: (k.get('score')), reverse=True)
-    return alias_list
+    try:
+        ids = mention2ids[src_word]
+        alias_list = []
+        for _id in ids:
+            if _id in id2mention.keys():
+                mentions = id2mention[_id]
+                for i, mention_text in enumerate(mentions):
+                    if mention_text != src_word:
+                        # init
+                        # TODO use score in xlink to replace
+                        alias_data = {"text": mention_text, "score": i}
+                        alias_list.append(alias_data)
+        alias_list = sorted(alias_list, key=lambda k: (k.get('score')), reverse=True)
+        return alias_list
+    except KeyError:
+        return []
 
 
 if __name__ == "__main__":
