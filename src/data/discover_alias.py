@@ -118,7 +118,7 @@ def read_mention2ids(src_file_path):
     return mention2ids
 
 
-def get_alias_table(mention2ids, id2mention):
+def get_alias_table(mention2ids, id2mention, task):
     """
     :param mention2ids: dict
     :param id2mention: dict
@@ -126,7 +126,7 @@ def get_alias_table(mention2ids, id2mention):
     """
     alias_table = {}
     for entity_id, mentions in id2mention.items():
-        if len(mentions) < 2:
+        if len(mentions) < 2 and task != 'zeshel':
             continue
         # the injective alias must not have multiple ids
         injective_aliases = []
@@ -136,14 +136,19 @@ def get_alias_table(mention2ids, id2mention):
                 injective_aliases.append(mention)
             else:
                 surjective_aliases.append(mention)
-        if len(injective_aliases) >= 1 and len(injective_aliases) + len(surjective_aliases) > 1:
-            # add surjective alias. Any injective_alias can hasAlias surjective alia. But vice is wrong
+        if task != 'zeshel':
+            # old branch
+            if len(injective_aliases) >= 1 and len(injective_aliases) + len(surjective_aliases) > 1:
+                # add surjective alias. Any injective_alias can hasAlias surjective alia. But vice is wrong
+                alias_table[entity_id] = {'injective_aliases': injective_aliases,
+                                          'surjective_aliases': surjective_aliases}
+        else:
             alias_table[entity_id] = {'injective_aliases': injective_aliases,
                                       'surjective_aliases': surjective_aliases}
     return alias_table
 
 
-def get_has_alias_relation(alias_tables, id2ent_name):
+def get_has_alias_relation(alias_tables, id2ent_name, id2mention=None):
     has_alias_relation_record = {
         'prefix_extend': [],  # List of HasAlias
         'prefix_reduce': [],
@@ -161,13 +166,21 @@ def get_has_alias_relation(alias_tables, id2ent_name):
         surjective_aliases = alias_table['surjective_aliases']
         ent_name = id2ent_name[entity_id]
         alias_num = len(injective_aliases) + len(surjective_aliases)
-        assert alias_num > 1
+        # print(injective_aliases)
+        # print(surjective_aliases)
+        # print(id2mention[entity_id])
+        # print("$" * 20)
         # use ent_name as src_name
-        if ent_name not in injective_aliases:
-            no_ent_name_num += 1
-            continue
+        if not id2mention:
+            assert alias_num > 1
+            if ent_name not in injective_aliases:
+                no_ent_name_num += 1
+                continue
+            tgt_words = injective_aliases + surjective_aliases
+        else:
+            # These mentions have excluded ent_name
+            tgt_words = id2mention[entity_id]
         has_alias_relation_dict = {k: [] for k in has_alias_relation_record.keys()}
-        tgt_words = injective_aliases + surjective_aliases
         for i, word in enumerate(tgt_words):
             if word == ent_name:
                 continue
@@ -213,6 +226,7 @@ def work():
     parser.add_argument('--src_file', type=str, default='mention_anchors.txt')
     parser.add_argument('--mention_file_name', type=str, default='id2mention')
     parser.add_argument('--ent_name_file_name', type=str, default='id2ent_name')
+    parser.add_argument('--task', type=str, default='zeshel')
     args = parser.parse_args()
     src_file_path = os.path.join(args.data_dir, args.src_file)
     mention2ids = read_mention2ids(src_file_path)
@@ -223,8 +237,8 @@ def work():
     with open(id2mention_json_path, 'r') as json_file:
         id2mention = json.load(json_file)
         # get entity's alias.
-        alias_table = get_alias_table(mention2ids, id2mention)
-        has_alias_relation_record = get_has_alias_relation(alias_table, id2ent_name)
+        alias_table = get_alias_table(mention2ids, id2mention, args.task)
+        has_alias_relation_record = get_has_alias_relation(alias_table, id2ent_name, id2mention)
         result_path = os.path.join(args.data_dir, "has_alias_relation_record.pkl")
         with open(result_path, 'wb') as fout:
             pickle.dump(has_alias_relation_record, fout)

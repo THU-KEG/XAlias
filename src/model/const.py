@@ -19,6 +19,51 @@ patterns = {
                 # 'punctuation': ['也被称为', '的别名是', ',简称', '，简称', '简称'],
                 'punctuation': ['的别名是'],
             }
+    },
+    'en': {
+        'fill': [
+            'is also called [MASK].', 'is known as [MASK].',
+            'is the short for [MASK].', '[MASK] is the short for ',
+        ]
+    }
+
+}
+
+en_few_shot_alias_table = {
+    'prefix_extend': {
+        'trundles': ['dr . trundles'],
+        'bull netch': ['giant bull netch'],
+        'ubar': ['lost city of ubar'],
+    },
+    'prefix_reduce': {
+        'terran empire': ['empire'],
+        'vorok \' s battle cruiser': ['battle cruiser'],
+        'outpost 8': ['8'],
+    },
+    'suffix_extend': {
+        'crab': ['crabs'],
+        'heishin': ['heishin \' s'],
+        'latvia': ['latvian'],
+    },
+    'suffix_reduce': {
+        'yusaku fujiki': ['yusaku'],
+        'radius ( geometry )': ['radius'],
+        'resignation': ['resign'],
+    },
+    'abbreviation': {
+        'yu - gi - oh ! gx - episode 092': ['episode 92'],
+        'delta eagle ( outfit )': ['delta eagle outfit'],
+        'union of soviet socialist republics': ['ussr'],
+    },
+    'expansion': {
+        'subspace tear': ['tear in subspace'],
+        'ring of myrkul': ['rings of myrkul'],
+        'thorass languages': ['thorass language family'],
+    },
+    'synonym': {
+        'harpy': ['harpies'],
+        'costume': ['suit'],
+        'oath': ['sworn'],
     }
 
 }
