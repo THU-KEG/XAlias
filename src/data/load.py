@@ -57,7 +57,7 @@ class AliasDataset:
                 pairs.append((src_word, tgt_word))
         return pairs
 
-    def sample_alias_table(self, num, alias_data_source):
+    def sample_alias_table(self, num, alias_data_source, language):
         alias_table = {}
         if alias_data_source == 'whole_dataset':
             examples = random.sample(self.pure_data, num)
@@ -71,7 +71,7 @@ class AliasDataset:
                 alias_num += len(tgt_words)
         else:
             # from support pool
-            src_table = few_shot_alias_table[self.alias_type]
+            src_table = few_shot_alias_table[language][self.alias_type]
             example_keys = random.sample(src_table.keys(), num)
             alias_table = {k: src_table[k] for k in example_keys}
 
@@ -81,13 +81,14 @@ class AliasDataset:
         alias_tables = []
         if args.alias_example_strategy == 'cluster':
             # use cluster to calculate similarity, not finished yet
-            alias_table = self.sample_alias_table(src_word, args.alias_data_source)
+            alias_table = self.sample_alias_table(src_word, args.alias_data_source, args.language)
         else:
             # randomly sample examples from whole dataset or support pool
             for i in range(args.alias_table_num):
                 # use random seed to maintain reproducing ability
                 random.seed(args.seed)
-                alias_table = self.sample_alias_table(args.task_specific_prompt_num, args.alias_data_source)
+                alias_table = self.sample_alias_table(args.task_specific_prompt_num, args.alias_data_source,
+                                                      args.language)
                 alias_tables.append(alias_table)
                 # change seed for every table
                 args.seed += 1

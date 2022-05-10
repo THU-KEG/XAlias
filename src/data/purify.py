@@ -34,7 +34,7 @@ def _filter_stop_words(has_alias_relation_record: dict):
             # we do not filter the bilingual and multiple type aliases
             new_data[alias_type] = has_alias_list
             continue
-        stop_src_words = list(few_shot_alias_table[alias_type].keys())
+        stop_src_words = list(few_shot_alias_table['ch'][alias_type].keys())
         cleaned_list = []
         for has_alias in tqdm(has_alias_list):
             if has_alias.src_word in stop_src_words:

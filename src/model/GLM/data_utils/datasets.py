@@ -34,7 +34,7 @@ import nltk
 from nltk import tokenize
 
 from .lazy_loader import LazyLoader, exists_lazy
-from utils import print_rank_0
+from src.model.GLM.utils import print_rank_0
 
 
 class ShuffleDataset(data.Dataset):

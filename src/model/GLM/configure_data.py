@@ -21,15 +21,15 @@ import random
 import numpy as np
 import torch
 import torch.utils.data
-import data_utils
-from blocklm_utils import ConstructBlockStrategy
-from data_utils.tokenization import make_tokenizer
-from utils import print_rank_0
+import src.model.GLM.data_utils as data_utils
+from src.model.GLM.blocklm_utils import ConstructBlockStrategy
+from src.model.GLM.data_utils.tokenization import make_tokenizer
+from src.model.GLM.utils import print_rank_0
 from itertools import accumulate
 from bisect import bisect_right
-from tasks.superglue.dataset import SuperGlueDataset
+from src.model.GLM.tasks.superglue.dataset import SuperGlueDataset
 
-import mpu
+import src.model.GLM.mpu as mpu
 
 
 class MultiTaskDataset(torch.utils.data.Dataset):

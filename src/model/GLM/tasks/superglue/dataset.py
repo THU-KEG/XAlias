@@ -29,12 +29,12 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 
-from tasks.data_utils import InputExample
-from utils import print_rank_0
-from tasks.superglue.pvp import PVPS
-from tasks.data_utils import build_input_from_ids, build_sample, num_special_tokens_to_add
+from src.model.GLM.tasks.data_utils import InputExample
+from src.model.GLM.utils import print_rank_0
+from src.model.GLM.tasks.superglue.pvp import PVPS
+from src.model.GLM.tasks.data_utils import build_input_from_ids, build_sample, num_special_tokens_to_add
 from collections import defaultdict
-from data_utils.corpora import punctuation_standardization
+from src.model.GLM.data_utils.corpora import punctuation_standardization
 
 TRAIN_SET = "train"
 DEV_SET = "dev"

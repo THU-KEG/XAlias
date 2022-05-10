@@ -28,19 +28,19 @@ import torch
 
 import deepspeed
 from contextlib import ExitStack
-from arguments import get_args
-from configure_data import configure_data, prepare_tokenizer, build_multi_task_dataset
-import mpu
+from src.model.GLM.arguments import get_args
+from src.model.GLM.configure_data import configure_data, prepare_tokenizer, build_multi_task_dataset
+import src.model.GLM.mpu as mpu
 import pathlib
 
-from train_utils import setup_model_and_optimizer, train_step
-from utils import Timers
-from utils import save_checkpoint
-from utils import load_checkpoint
-from utils import report_memory
-from utils import print_and_save_args
-from utils import print_rank_0
-from utils import get_sample_writer, get_log_dir, get_hostname
+from src.model.GLM.train_utils import setup_model_and_optimizer, train_step
+from src.model.GLM.utils import Timers
+from src.model.GLM.utils import save_checkpoint
+from src.model.GLM.utils import load_checkpoint
+from src.model.GLM.utils import report_memory
+from src.model.GLM.utils import print_and_save_args
+from src.model.GLM.utils import print_rank_0
+from src.model.GLM.utils import get_sample_writer, get_log_dir, get_hostname
 import torch.distributed as dist
 
 

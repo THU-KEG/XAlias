@@ -20,7 +20,8 @@ import os
 import torch
 import deepspeed
 import json
-from utils import get_hostname
+from src.model.GLM.utils import get_hostname
+from demo.params import add_decode_param, add_test_param
 
 
 def add_model_config_args(parser):
@@ -38,14 +39,14 @@ def add_model_config_args(parser):
                        help="use the encoder-decoder architecture for blocklm")
     group.add_argument('--attention-dropout', type=float, default=0.1,
                        help='dropout probability for attention weights')
-    group.add_argument('--num-attention-heads', type=int, default=16,
+    group.add_argument('--num-attention-heads', type=int, default=64,
                        help='num of transformer attention heads')
-    group.add_argument('--hidden-size', type=int, default=1024,
+    group.add_argument('--hidden-size', type=int, default=4096,
                        help='tansformer hidden size')
     group.add_argument('--intermediate-size', type=int, default=None,
                        help='transformer embedding dimension for FFN'
                             'set to 4*`--hidden-size` if it is None')
-    group.add_argument('--num-layers', type=int, default=24,
+    group.add_argument('--num-layers', type=int, default=48,
                        help='num decoder layers')
     group.add_argument('--layernorm-epsilon', type=float, default=1e-5,
                        help='layer norm epsilon')
@@ -53,7 +54,7 @@ def add_model_config_args(parser):
                        help='dropout probability for hidden state transformer')
     group.add_argument('--output-dropout', type=float, default=0.1,
                        help='dropout probability for pooled output')
-    group.add_argument('--max-position-embeddings', type=int, default=512,
+    group.add_argument('--max-position-embeddings', type=int, default=1024,
                        help='maximum number of position embeddings to use')
     group.add_argument('--vocab-size', type=int, default=30522,
                        help='vocab size to use for non-character-level '
@@ -80,7 +81,7 @@ def add_fp16_config_args(parser):
 
     group = parser.add_argument_group('fp16', 'fp16 configurations')
 
-    group.add_argument('--fp16', action='store_true',
+    group.add_argument('--fp16', action='store_false',
                        help='Run model in fp16 mode')
     group.add_argument('--fp32-embedding', action='store_true',
                        help='embedding in fp32')
@@ -134,7 +135,8 @@ def add_training_args(parser):
     group.add_argument('--log-interval', type=int, default=100,
                        help='report interval')
     group.add_argument('--summary-dir', type=str, default="", help="The directory to store the summary")
-    group.add_argument('--seed', type=int, default=1234, help='random seed')
+    # conflict params
+    # group.add_argument('--seed', type=int, default=1234, help='random seed')
     # Batch producer arguments
     group.add_argument('--reset-position-ids', action='store_true',
                        help='Reset posistion ids after end-of-document token.')
@@ -189,13 +191,13 @@ def add_training_args(parser):
     group.add_argument('--distributed-backend', default='nccl',
                        help='which backend to use for distributed training. One of [gloo, nccl]',
                        choices=['nccl', 'gloo'])
-    group.add_argument('--DDP-impl', default='torch', choices=['local', 'torch', 'none'],
+    group.add_argument('--DDP-impl', default='none', choices=['local', 'torch', 'none'],
                        help='which DistributedDataParallel implementation to use.')
 
     group.add_argument('--local_rank', type=int, default=None,
                        help='local rank passed from distributed launcher')
     # BlockLM training args
-    group.add_argument('--block-lm', action='store_true', help="whether use the BlockLM pre-training")
+    group.add_argument('--block-lm', action='store_false', help="whether use the BlockLM pre-training")
     group.add_argument('--masked-lm', action='store_true', help='whether to use the mlm objective')
     group.add_argument('--bert-prob', type=float, default=0.5)
     group.add_argument('--gpt-infill-prob', type=float, default=0.5)
@@ -205,7 +207,7 @@ def add_training_args(parser):
     group.add_argument('--avg-block-length', type=int, default=3)
     group.add_argument('--short-seq-prob', type=float, default=0.0)
     group.add_argument('--single-span-prob', type=float, default=0.0)
-    group.add_argument('--task-mask', action='store_true', help="Use different mask for generation and blank filling")
+    group.add_argument('--task-mask', action='store_false', help="Use different mask for generation and blank filling")
     group.add_argument('--no-shuffle-block', action='store_true', help="not shuffle the blocks when filling the blank")
     group.add_argument('--no-block-position', action='store_true',
                        help='Use (rough) absolute positions instead of block positions')
@@ -249,11 +251,12 @@ def add_text_generate_args(parser):
     """Text generate arguments."""
 
     group = parser.add_argument_group('Text generation', 'configurations')
-    group.add_argument("--temperature", type=float, default=1.0)
-    group.add_argument("--top_p", type=float, default=0.0)
-    group.add_argument("--top_k", type=int, default=0)
+    # conflict params
+    # group.add_argument("--temperature", type=float, default=0.9)
+    # group.add_argument("--top_p", type=float, default=0.0)
+    # group.add_argument("--top_k", type=int, default=40)
+    # group.add_argument("--num-beams", type=int, default=1)
     group.add_argument("--out-seq-length", type=int, default=256)
-    group.add_argument("--num-beams", type=int, default=1)
     group.add_argument("--length-penalty", type=float, default=0.0)
     group.add_argument("--no-repeat-ngram-size", type=int, default=0)
     group.add_argument("--min-tgt-length", type=int, default=0)
@@ -318,7 +321,7 @@ def add_data_args(parser):
                        help='path used to save/load sentencepiece tokenization '
                             'models')
     group.add_argument('--tokenizer-type', type=str,
-                       default='BertWordPieceTokenizer',
+                       default='GPT2BPETokenizer',
                        choices=['CharacterLevelTokenizer',
                                 'SentencePieceTokenizer',
                                 'BertWordPieceTokenizer',
@@ -332,7 +335,7 @@ def add_data_args(parser):
                        help='load `--train-data`, `--valid-data`, '
                             '`--test-data` from BERT tf records instead of '
                             'normal data pipeline')
-    group.add_argument('--seq-length', type=int, default=512,
+    group.add_argument('--seq-length', type=int, default=256,
                        help="Maximum sequence length to process")
     group.add_argument('--mem-length', type=int, default=0,
                        help="The memory length to preserve")
@@ -356,10 +359,11 @@ def add_data_args(parser):
 def add_finetune_config_args(parser):
     group = parser.add_argument_group('finetune', 'finetune configurations')
     group.add_argument('--task', type=str, help='Task name.')
-    group.add_argument('--load-pretrained', type=str, help="Load pretrained model", default=None)
+    group.add_argument('--load-pretrained', type=str, help="Load pretrained model",
+                       default='/data/tsq/glm/blocklm-10b-english')
     group.add_argument('--pool-token', type=str, choices=['start', 'pad', 'cls'],
                        help='The token to pool the sequence representation', default='cls')
-    group.add_argument('--cloze-eval', action='store_true', help='Evaluation dataset with cloze task')
+    group.add_argument('--cloze-eval', action='store_false', help='Evaluation dataset with cloze task')
     group.add_argument('--multi-token', action='store_true', help='Use multi token for cloze evaluation')
     group.add_argument('--segment-length', type=int, default=0, help="The maximum segment length for cloze evaluation")
     group.add_argument('--loss-func', type=str, choices=["cross_entropy", "hinge", "generative", "mix"],
@@ -404,6 +408,9 @@ def get_args():
     parser = add_text_generate_args(parser)
     parser = add_data_args(parser)
     parser = add_finetune_config_args(parser)
+    # for alias test
+    parser = add_test_param(parser)
+    parser = add_decode_param(parser)
 
     # Include DeepSpeed configuration arguments
     parser = deepspeed.add_config_arguments(parser)

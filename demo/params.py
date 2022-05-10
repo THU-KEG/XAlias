@@ -1,5 +1,5 @@
 import argparse
-from src.model.pattern import few_shot_alias_table
+from src.model.const import few_shot_alias_table
 
 BMINF_FILL_KEYS = ['top_p', 'top_n', 'temperature', 'frequency_penalty', 'presence_penalty']
 BMINF_SAMLE_KEYS = ['max_tokens', 'top_n', 'top_p', 'temperature', 'frequency_penalty',
@@ -57,9 +57,9 @@ def get_sample_param(args):
 
 def reduce_args(args):
     args_dict = vars(args)
-    if args.task == 'fill':
+    if args.alias_task == 'fill':
         kwargs = {k: args_dict[k] for k in BMINF_FILL_KEYS}
-    elif args.task == 'generate':
+    elif args.alias_task == 'generate':
         if args.num_beams is None:
             kwargs = {k: args_dict[k] for k in BMINF_SAMLE_KEYS}
         else:
@@ -72,7 +72,8 @@ def reduce_args(args):
 def add_decode_param(parser: argparse.ArgumentParser):
     # verbalize params
     parser.add_argument('--language', type=str, default='ch', choices=['en', 'ch'])
-    parser.add_argument('--task', type=str, default='generate', choices=['fill', 'generate'])
+    parser.add_argument('--model_name', type=str, default='cpm2', choices=['cpm2', 'glm'])
+    parser.add_argument('--alias_task', type=str, default='generate', choices=['fill', 'generate'])
     # gpu device
     parser.add_argument('--gpu_id', type=int, default=0)
     # shared decode params
@@ -158,7 +159,7 @@ def get_bminf_param():
     # parser.add_argument('--source_word', type=str, default='北京大学', choices=['北京大学', '清华大学', '北京航空航天大学', '江西省', '北京'])
     parser.add_argument('--source_word', type=str, default='北京大学')
     # prompt parameter
-    parser.add_argument('--prefix_type', type=str, default='void', choices=few_shot_alias_table.keys())
+    parser.add_argument('--prefix_type', type=str, default='void', choices=few_shot_alias_table['ch'].keys())
     parser = add_decode_param(parser)
 
     args = parser.parse_args()

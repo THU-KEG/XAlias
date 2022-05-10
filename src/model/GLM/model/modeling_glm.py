@@ -19,9 +19,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import mpu
-from model.prompt import PromptSpell
-from utils import print_rank_0
+import src.model.GLM.mpu as mpu
+from src.model.GLM.model.prompt import PromptSpell
+from src.model.GLM.utils import print_rank_0
 
 
 def init_method_normal(std=0.02):

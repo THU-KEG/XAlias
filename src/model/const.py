@@ -68,7 +68,7 @@ en_few_shot_alias_table = {
 
 }
 
-few_shot_alias_table = {
+ch_few_shot_alias_table = {
     'prefix_extend': {
         '标致408': ['东风标致408'],
         '寒窑遗址公园': ['曲江寒窑遗址公园'],
@@ -166,6 +166,11 @@ few_shot_alias_table = {
         '超硬材料国家重点实验室（吉林大学）': ['吉林大学超硬材料国家重点实验室'],
     },
     'void': {},
+}
+
+few_shot_alias_table = {
+    'ch': ch_few_shot_alias_table,
+    'en': en_few_shot_alias_table
 }
 """
 patterns = {

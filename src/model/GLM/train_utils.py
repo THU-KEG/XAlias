@@ -3,14 +3,14 @@ import torch
 from apex.optimizers import FusedAdam as Adam
 from torch import distributed as dist
 
-import mpu
-from fp16 import FP16_Module, FP16_Optimizer, DynamicLossScaler
-from learning_rates import AnnealingLR
-from model import GLMModel, glm_get_params_for_weight_decay_optimization
-from model import GLMForMultiTokenCloze, GLMForMultiTokenClozeFast, GLMForSingleTokenCloze, GLMForSequenceClassification
-from model import PyTorchDistributedDataParallel as TorchDDP, DistributedDataParallel as LocalDDP
-from model.modeling_bert import BertForMultipleChoice, BertForSequenceClassification
-from utils import print_rank_0, get_checkpoint_name, get_checkpoint_iteration
+import src.model.GLM.mpu as mpu
+from src.model.GLM.fp16 import FP16_Module, FP16_Optimizer, DynamicLossScaler
+from src.model.GLM.learning_rates import AnnealingLR
+from src.model.GLM.model import GLMModel, glm_get_params_for_weight_decay_optimization
+from src.model.GLM.model import GLMForMultiTokenCloze, GLMForMultiTokenClozeFast, GLMForSingleTokenCloze, GLMForSequenceClassification
+from src.model.GLM.model import PyTorchDistributedDataParallel as TorchDDP, DistributedDataParallel as LocalDDP
+from src.model.GLM.model.modeling_bert import BertForMultipleChoice, BertForSequenceClassification
+from src.model.GLM.utils import print_rank_0, get_checkpoint_name, get_checkpoint_iteration
 
 
 def load_pretrained(model, checkpoint_path, args, task_tokens=None):

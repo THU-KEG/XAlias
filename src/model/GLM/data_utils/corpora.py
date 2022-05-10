@@ -23,7 +23,7 @@ from queue import Empty
 from collections import defaultdict
 from torch.utils import data
 from .lazy_loader import LazyLoader
-from utils import print_rank_0
+from src.model.GLM.utils import print_rank_0
 
 NUM_PROCESSES = 100
 

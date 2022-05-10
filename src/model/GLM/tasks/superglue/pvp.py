@@ -22,9 +22,9 @@ from collections import defaultdict
 from typing import Tuple, List, Union, Dict
 import numpy as np
 
-from tasks.data_utils import InputExample, num_special_tokens_to_add, build_input_from_ids, build_sample, \
+from src.model.GLM.tasks.data_utils import InputExample, num_special_tokens_to_add, build_input_from_ids, build_sample, \
     build_decoder_input, build_decoder_sample
-from utils import print_rank_0
+from src.model.GLM.utils import print_rank_0
 
 FilledPattern = Tuple[List[Union[str, Tuple[str, bool]]], List[Union[str, Tuple[str, bool]]]]
 

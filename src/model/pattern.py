@@ -1,6 +1,6 @@
 import argparse
 import logging
-
+from src.model.GLM.generate_samples import call_glm_generate
 import bminf
 import numpy as np
 import stanfordnlp
@@ -54,12 +54,16 @@ class Verbalizer(object):
         self.kwargs = None
         self.args = None
         self.signal_args = {}
+        # glm params
+        self.glm_args = None
+        self.tokenizer = None
+        self.device = None
         # stanford nlp
         self.nlp = None
 
     def convert_all(self, prefix_type, src_word, task_def=False, alias_table=None):
         if alias_table is None:
-            alias_table = few_shot_alias_table[prefix_type]
+            alias_table = few_shot_alias_table[self.language][prefix_type]
         results = []
         for p_id in range(len(self.patterns[prefix_type])):
             prefix = ''
@@ -74,7 +78,7 @@ class Verbalizer(object):
                         if self.language == 'ch':
                             prefix += key_word + self.g_patterns[prefix_type][p_id] + alias + '，'
                         else:
-                            prefix += key_word + self.g_patterns[prefix_type][p_id] + alias + ', '
+                            prefix += key_word + self.g_patterns[prefix_type][p_id] + alias + '. '
             sequence = self.convert(prefix, prefix_type, src_word, p_id)
             results.append(sequence)
         return results
@@ -97,6 +101,14 @@ class Verbalizer(object):
             # default is None
             if v is not None:
                 self.signal_args[k] = v
+
+    def set_glm(self, args: argparse.ArgumentParser, model, tokenizer, glm_args, device):
+        # = init_glm()
+        self.args = args
+        self.model = model
+        self.tokenizer = tokenizer
+        self.glm_args = glm_args
+        self.device = device
 
     def set_for_rerank(self, args: argparse.ArgumentParser):
         self.args = args
@@ -142,7 +154,7 @@ class Verbalizer(object):
         for alias_table in alias_tables:
             input_texts = self.convert_all(prefix_type, src_word, task_def, alias_table)
             for pattern_id, input_text in enumerate(input_texts):
-                if self.args.task == 'fill':
+                if self.task == 'fill':
                     # fill_blank(model, input_text, kwargs)
                     return [['']], [[]]
                 else:
@@ -434,13 +446,13 @@ class Verbalizer(object):
             final_similarity = np.linalg.norm(np.array(src_vec) - np.array(pred_vec))
         return float(final_similarity)
 
-    def cpm2_fast_gen_by_prompt(self, prefix_type, src_word, task_def, alias_tables=None) \
+    def fast_gen_by_prompt(self, prefix_type, src_word, task_def, alias_tables=None) \
             -> Tuple[List[List[str]], List[List]]:
         pattern2beams = [[] for _ in range(self.pattern_num(prefix_type))]
         for alias_table in alias_tables:
             input_texts = self.convert_all(prefix_type, src_word, task_def, alias_table)
             for pattern_id, input_text in enumerate(input_texts):
-                if self.args.task == 'fill':
+                if self.task == 'fill':
                     # fill_blank(model, input_text, kwargs)
                     return [['']], [[]]
                 else:
@@ -450,7 +462,11 @@ class Verbalizer(object):
                         beams = self.cpm2_beam_search(input_text)
                     else:
                         # sample with different params
-                        beams.append(self.cpm2_sample_text(input_text))
+                        if self.args.model_name == 'cpm2':
+                            beams.append(self.cpm2_sample_text(input_text))
+                        else:
+                            # glm
+                            beams.append(self.glm_sample_text(input_text))
                     pattern2beams[pattern_id].extend(beams)
         # process and truncate
         logging.info("raw pattern2beams are:")
@@ -465,8 +481,12 @@ class Verbalizer(object):
         # default strategy is None
         tidy_beams = []
         # deal with punctuation
-        separated_chars = '，。\n'
-        stopped_chars = "！？，｡、＂＇（）：；\n“"
+        if self.args.language == 'ch':
+            separated_chars = '，。\n'
+            stopped_chars = "！？，｡、＂＇（）：；\n“"
+        else:
+            separated_chars = [',', '\n', '.', 'or', 'and']
+            stopped_chars = "!?,.＇();:\n"
         for beam in beams:
             striped = beam.strip(stopped_chars)
             has_separated_char = False
@@ -505,6 +525,11 @@ class Verbalizer(object):
             total_len += len(value)
 
         return result_string
+
+    def glm_sample_text(self, input_text) -> str:
+        result_string = call_glm_generate(self.model, self.tokenizer, self.glm_args, self.device, input_text)
+        result = result_string.split("<|startofpiece|>")[1].strip()
+        return result
 
 
 def get_cos_similar_matrix(v1, v2):

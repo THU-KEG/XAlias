@@ -20,7 +20,7 @@ from torch.nn.modules import Module
 from torch.autograd import Variable
 from torch.nn.parallel.distributed import DistributedDataParallel as DDP
 
-import mpu
+import src.model.GLM.mpu as mpu
 
 
 class PyTorchDistributedDataParallel(DDP):

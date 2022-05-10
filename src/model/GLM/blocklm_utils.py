@@ -1,11 +1,11 @@
 import torch
 import torch.utils.data
-import mpu
+import src.model.GLM.mpu as mpu
 import random
 import copy
 import numpy as np
 import math
-from utils import print_rank_0
+from src.model.GLM.utils import print_rank_0
 from scipy.stats import poisson
 
 

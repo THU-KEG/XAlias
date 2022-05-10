@@ -7,7 +7,6 @@ source $1
 #BertWordPieceTokenizer
 MPSIZE=1
 MAXSEQLEN=512
-MASTER_PORT=$(shuf -n 1 -i 10000-65535)
 
 #SAMPLING ARGS
 TEMP=0.9
@@ -15,12 +14,8 @@ TEMP=0.9
 TOPK=40
 TOPP=0
 
-script_path=$(realpath $0)
-script_dir=$(dirname $script_path)
 
-config_json="$script_dir/ds_config.json"
-
-python -m torch.distributed.launch --nproc_per_node=$MPSIZE --master_port $MASTER_PORT generate_samples.py \
+python -m torch.distributed.launch generate_samples.py \
        --DDP-impl none \
        --model-parallel-size $MPSIZE \
        $MODEL_ARGS \

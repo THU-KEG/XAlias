@@ -23,8 +23,8 @@ import torch
 import json
 import subprocess
 
-from fp16 import FP16_Optimizer
-import mpu
+from src.model.GLM.fp16 import FP16_Optimizer
+import src.model.GLM.mpu as mpu
 from tensorboardX import SummaryWriter
 
 SUMMARY_WRITER_DIR_NAME = 'runs'

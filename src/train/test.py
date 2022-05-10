@@ -7,6 +7,7 @@ from tqdm import tqdm
 from src.data.load import AliasDataset
 import bminf
 from src.data.discover_alias import HasAlias
+from src.model.GLM.generate_samples import init_glm
 import numpy as np
 import time
 from src.model.pattern import Verbalizer
@@ -28,7 +29,7 @@ def init_log_sub_dirs(log_dir):
     return ref_dir, sum_dir
 
 
-def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
+def validate(data, model, device, log_dir, args, _kwargs, tokenizer, fast=True):
     # model.eval()
     # torch.cuda.empty_cache()
     ref_dir, sum_dir = init_log_sub_dirs(log_dir)
@@ -37,8 +38,11 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
     records = []
     # with torch.no_grad():
     try:
-        verbalizer = Verbalizer(args.language, args.task)
-        verbalizer.set_cpm2(model, cpm2_kwargs, args)
+        verbalizer = Verbalizer(args.language, args.alias_task)
+        if args.language == 'ch' and args.model_name == 'cpm2':
+            verbalizer.set_cpm2(model, _kwargs, args)
+        else:
+            verbalizer.set_glm(args, model, tokenizer, _kwargs, device)
         for batch_iter, batch in tqdm(enumerate(data.gen_batch()), desc="Validating", total=data.example_num):
             if fast and batch_iter % 10 != 0:
                 continue
@@ -46,12 +50,12 @@ def validate(data, model, device, log_dir, args, cpm2_kwargs, fast=True):
             # generate by PLM
             if args.extra_prompt == 'task_specific':
                 alias_tables = data.get_alias_example_tables(src_word, args)
-                pred_words, pattern2beams = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word,
+                pred_words, pattern2beams = verbalizer.fast_gen_by_prompt(data.alias_type, src_word,
                                                                           args.task_definition,
                                                                           alias_tables)
             else:
                 alias_table = None
-                pred_words, pattern2beams = verbalizer.cpm2_gen_by_prompt(data.alias_type, src_word, False, alias_table)
+                pred_words, pattern2beams = verbalizer.fast_gen_by_prompt(data.alias_type, src_word, False, alias_table)
             golden = ' '.join(tgt_words)
             pred = ' '.join([i for arr in pred_words for i in arr])
 
@@ -110,14 +114,19 @@ def vis_scores(scores):
 
 
 def work(args, cpm2_kwargs):
-    device = 'cuda'
-    if args.language == 'ch':
+    print(args.__dict__)
+    if args.language == 'ch' and args.model_name == 'cpm2':
         np.random.seed(args.seed)
         model = bminf.models.CPM2(device=args.gpu_id)
+        device = 'cuda'
+        _kwargs = cpm2_kwargs
+        tokenizer = None
+
     else:
         # huggingface
-        model = None
-    print("kwargs:", cpm2_kwargs)
+        model, tokenizer, _kwargs, device = init_glm()
+
+    print("kwargs:", _kwargs)
     if args.test:
         data = AliasDataset(args.data_path, args.alias_type, 'test', exp_num=args.example_num)
     else:
@@ -130,7 +139,7 @@ def work(args, cpm2_kwargs):
     else:
         print('log dir %s exists, be careful that we will overwrite it' % log_dir)
 
-    scores, records = validate(data, model, device, log_dir, args, cpm2_kwargs, fast=args.fast)
+    scores, records = validate(data, model, device, log_dir, args, _kwargs, tokenizer, fast=args.fast)
     save_test_result(args, log_dir, scores, records)
 
 

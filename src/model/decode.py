@@ -1,6 +1,6 @@
 import bminf
 import copy
-import cupy
+# import cupy
 import numpy as np
 from typing import Optional, Tuple, Union, List
 
@@ -90,15 +90,15 @@ def beam2dict(beam: Beam):
     return d
 
 
-def get_topk_tokens(logits: cupy.ndarray, k: int):
-    logits -= logits.max()
-    logits = cupy.exp(logits)
-    logits /= logits.sum()
-    cpu_probs = cupy.asnumpy(logits).astype(np.float32)
-    # Default is in descending order (This bug confused me for a while)
-    idx = cpu_probs.argsort()
-    cpu_probs.sort()
-    return idx[-k::-1], cpu_probs[-k::-1]
+# def get_topk_tokens(logits: cupy.ndarray, k: int):
+#     logits -= logits.max()
+#     logits = cupy.exp(logits)
+#     logits /= logits.sum()
+#     cpu_probs = cupy.asnumpy(logits).astype(np.float32)
+#     # Default is in descending order (This bug confused me for a while)
+#     idx = cpu_probs.argsort()
+#     cpu_probs.sort()
+#     return idx[-k::-1], cpu_probs[-k::-1]
 
 
 def sort_beams(beams):
@@ -156,7 +156,8 @@ def beam_search(model: bminf.models.CPM2,
             logits_i = model.decode_step(h.context, h.tokens[-1:])[0]
             context_i = copy.deepcopy(h.context)
             # topk
-            topk_ids, topk_log_probs = get_topk_tokens(logits_i, num_beams * 2)
+            topk_ids, topk_log_probs = None, None
+            # topk_ids, topk_log_probs = get_topk_tokens(logits_i, num_beams * 2)
             if DEBUG:
                 print("{} beam last token is {}".format(i, h.tokens[-1]))
                 print(topk_ids)
@@ -226,7 +227,8 @@ def generate_return_beam(model: bminf.models.CPM2,
             stoped = True
             break
         # blanks.append(decoder_ipts) # this bug puzzled me for 3 days !!!
-        logit = cupy.asnumpy(logits)[decoder_ipts]
+        # logit = cupy.asnumpy(logits)[decoder_ipts]
+        logit = logits[decoder_ipts]
         token_prob = logit.astype(np.float32)
         beam = beam.extend(decoder_ipts, token_prob, context=None)
     # convert id to strings and save token_num

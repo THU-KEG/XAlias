@@ -33,7 +33,7 @@ def get_alias_example_tables(args):
     for i in range(args.alias_table_num):
         # use random seed to maintain reproducing ability
         random.seed(args.seed)
-        src_table = few_shot_alias_table[args.alias_type]
+        src_table = few_shot_alias_table[args.language][args.alias_type]
         example_keys = random.sample(src_table.keys(), args.task_specific_prompt_num)
         alias_table = {k: src_table[k] for k in example_keys}
         alias_tables.append(alias_table)
@@ -56,7 +56,7 @@ def call_prompt_generation(args, model=None):
     src_word = args.src_word
     alias_tables = get_alias_example_tables(args)
     if args.rank_strategy == "frequency":
-        pred_words, pattern2beams = verbalizer.cpm2_fast_gen_by_prompt(args.alias_type, src_word,
+        pred_words, pattern2beams = verbalizer.fast_gen_by_prompt(args.alias_type, src_word,
                                                                        args.task_definition,
                                                                        alias_tables)
     else:

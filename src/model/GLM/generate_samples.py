@@ -20,16 +20,16 @@ import torch
 import torch.nn.functional as F
 import time
 from datetime import datetime
-from arguments import get_args
-from pretrain_glm import initialize_distributed
-from pretrain_glm import set_random_seed
-from pretrain_glm import get_masks_and_position_ids
-from utils import load_checkpoint
-from configure_data import prepare_tokenizer
-from generation_utils import BeamSearchScorer
-import mpu
+from src.model.GLM.arguments import get_args
+from src.model.GLM.pretrain_glm import initialize_distributed
+from src.model.GLM.pretrain_glm import set_random_seed
+from src.model.GLM.pretrain_glm import get_masks_and_position_ids
+from src.model.GLM.utils import load_checkpoint
+from src.model.GLM.configure_data import prepare_tokenizer
+from src.model.GLM.generation_utils import BeamSearchScorer
+import src.model.GLM.mpu as mpu
 
-from train_utils import get_model
+from src.model.GLM.train_utils import get_model
 
 
 def setup_model(args):
@@ -209,6 +209,58 @@ def sample_sequence(model, tokenizer, context_tokens, context_length, args, devi
     return torch.cat((context_tokens, tokens), dim=1), mems
 
 
+def read_input_text(tokenizer, args, input_text):
+    terminate_runs, skip_run = 0, 0
+    if mpu.get_model_parallel_rank() == 0:
+
+        raw_text = input_text
+        if not raw_text:
+            print('Prompt should not be empty!')
+
+        if raw_text == "stop":
+            terminate_runs = 1
+        generation_mask = '[gMASK]' if args.task_mask else '[MASK]'
+        if args.block_lm and 'MASK]' not in raw_text:
+            raw_text += ' ' + generation_mask
+        context_tokens = tokenizer.EncodeAsIds(raw_text).tokenization
+        if args.block_lm:
+            context_tokens = [tokenizer.get_command('ENC').Id] + context_tokens
+            if not raw_text.endswith('MASK]'):
+                context_tokens = context_tokens + [tokenizer.get_command('eos').Id]
+        context_length = len(context_tokens)
+
+        if context_length >= args.seq_length:
+            print("\nContext length", context_length,
+                  "\nPlease give smaller context than the window length!")
+
+
+    else:
+        context_length = 0
+
+    terminate_runs_tensor = torch.cuda.LongTensor([terminate_runs])
+    torch.distributed.broadcast(terminate_runs_tensor, mpu.get_model_parallel_src_rank(),
+                                group=mpu.get_model_parallel_group())
+    terminate_runs = terminate_runs_tensor[0].item()
+
+    if terminate_runs == 1:
+        return terminate_runs, None, None, None
+
+    context_length_tensor = torch.cuda.LongTensor([context_length])
+
+    torch.distributed.broadcast(context_length_tensor, mpu.get_model_parallel_src_rank(),
+                                group=mpu.get_model_parallel_group())
+    context_length = context_length_tensor[0].item()
+    if mpu.get_model_parallel_rank() == 0:
+        context_tokens_tensor = torch.cuda.LongTensor(context_tokens)
+    else:
+        context_tokens_tensor = torch.cuda.LongTensor([0] * context_length)
+    torch.distributed.broadcast(context_tokens_tensor, mpu.get_model_parallel_src_rank(),
+                                group=mpu.get_model_parallel_group())
+    if mpu.get_model_parallel_rank() != 0:
+        raw_text = tokenizer.DecodeIds(context_tokens_tensor.tolist())
+    return terminate_runs, raw_text, context_tokens_tensor, context_length
+
+
 def read_context(tokenizer, args, output):
     terminate_runs, skip_run = 0, 0
     if mpu.get_model_parallel_rank() == 0:
@@ -343,12 +395,86 @@ def main():
     # generate samples
     generate_samples(model, tokenizer, args, torch.cuda.current_device())
 
+
+def init_glm():
+    print('Generate Samples')
+
+    # Disable CuDNN.
+    torch.backends.cudnn.enabled = False
+
+    # Arguments.
+    args = get_args()
+    args.mem_length = args.seq_length + args.mem_length - 1
+
+    # Pytorch distributed.
+    initialize_distributed(args)
+
+    # Random seeds for reproducability.
+    set_random_seed(args.seed)
+
+    # get the tokenizer
+    tokenizer = prepare_tokenizer(args)
+
+    # Model, optimizer, and learning rate.
+    model = setup_model(args)
+
+    # setting default batch size to 1
+    args.batch_size = 1
+    return model, tokenizer, args, torch.cuda.current_device()
+
+
+def call_glm_generate(model, tokenizer, args, device, input_text):
+    model.eval()
+    with torch.no_grad():
+
+        torch.distributed.barrier(group=mpu.get_model_parallel_group())
+        # start_time = time.time()
+        terminate_runs, raw_text, context_tokens_tensor, context_length = read_input_text(tokenizer, args, input_text)
+        if terminate_runs == 1:
+            return
+
+        if args.block_lm:
+            mems = []
+            tokens, attention_mask, position_ids = get_batch(context_tokens_tensor, device, args)
+            mask_tokens = ['MASK', 'sMASK', 'gMASK'] if args.task_mask else ['MASK']
+            mask_tokens = [tokenizer.get_command(token).Id for token in mask_tokens]
+            end_tokens = [tokenizer.get_command('eop').Id, args.eod_token]
+            mask_positions = []
+            for token in mask_tokens:
+                mask_positions += (context_tokens_tensor == token).nonzero(as_tuple=True)[0].tolist()
+            mask_positions.sort()
+            if args.no_block_position:
+                for mask_position in mask_positions:
+                    position_ids[0, mask_position + 1:] += args.out_seq_length
+            _, *mems = model(tokens, position_ids, attention_mask, *mems)
+            for mask_position in mask_positions:
+                if args.no_block_position:
+                    position = position_ids[0, mask_position].item()
+                else:
+                    position = mask_position
+                tokens, mems = sample_sequence(model, tokenizer, tokens, position,
+                                               args, device, mems=mems, end_tokens=end_tokens)
+        else:
+            tokens, _ = sample_sequence(model, tokenizer, context_tokens_tensor, context_length, args, device)
+        output_tokens_list = tokens.view(-1).contiguous()
+
+        torch.distributed.barrier(group=mpu.get_model_parallel_group())
+        # if mpu.get_model_parallel_rank() == 0:
+        # os.system('clear')
+        # print("\nTaken time {:.2f}\n".format(time.time() - start_time), flush=True)
+        decode_tokens = tokenizer.DecodeIds(output_tokens_list.tolist())
+        trim_decode_tokens = decode_tokens
+        # print("\nGLM:", trim_decode_tokens, flush=True)
+        return trim_decode_tokens
+
+
 class Struct:
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
+
 if __name__ == "__main__":
     main()
-    #args = {"hello":1}
-    #s = Struct(**args)
-    #print(s.hello)
+    # args = {"hello":1}
+    # s = Struct(**args)
+    # print(s.hello)
