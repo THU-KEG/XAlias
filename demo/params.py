@@ -1,10 +1,10 @@
 import argparse
 from src.model.const import few_shot_alias_table
 
-BMINF_FILL_KEYS = ['top_p', 'top_n', 'temperature', 'frequency_penalty', 'presence_penalty']
-BMINF_SAMLE_KEYS = ['max_tokens', 'top_n', 'top_p', 'temperature', 'frequency_penalty',
+BMINF_FILL_KEYS = ['top_p_cpm', 'top_n', 'temperature', 'frequency_penalty', 'presence_penalty']
+BMINF_SAMLE_KEYS = ['max_tokens', 'top_n', 'top_p_cpm', 'temperature', 'frequency_penalty',
                     'presence_penalty']
-BMINF_BEAM_KEYS = ['max_tokens', 'num_beams', 'num_return_sequences']
+BMINF_BEAM_KEYS = ['max_tokens', 'num_beams_cpm', 'num_return_sequences']
 
 
 def get_decode_param():
@@ -60,7 +60,7 @@ def reduce_args(args):
     if args.alias_task == 'fill':
         kwargs = {k: args_dict[k] for k in BMINF_FILL_KEYS}
     elif args.alias_task == 'generate':
-        if args.num_beams is None:
+        if args.num_beams_cpm is None:
             kwargs = {k: args_dict[k] for k in BMINF_SAMLE_KEYS}
         else:
             kwargs = {k: args_dict[k] for k in BMINF_BEAM_KEYS}
@@ -78,7 +78,7 @@ def add_decode_param(parser: argparse.ArgumentParser):
     parser.add_argument('--gpu_id', type=int, default=0)
     # shared decode params
     parser.add_argument('--seed', type=int, default=1453)
-    parser.add_argument('--top_p', type=float, default=None)
+    parser.add_argument('--top_p_cpm', type=float, default=None) # conflict with glm, we used to use None, but glm use 0
     parser.add_argument('--top_n', type=int, default=5)
     parser.add_argument('--temperature', type=float, default=0.9)
     parser.add_argument('--frequency_penalty', type=float, default=0)
@@ -99,7 +99,7 @@ def add_decode_param(parser: argparse.ArgumentParser):
                         choices=[None, 'concat'],
                         help='When decoded text is short, whether to concat generated text with src_word as input')
     # beam search
-    parser.add_argument('--num_beams', type=int, default=None)
+    parser.add_argument('--num_beams_cpm', type=int, default=None)
     parser.add_argument('--num_return_sequences', type=int, default=500)
     parser.add_argument('--num_generate_sequences', type=int, default=1)
     return parser

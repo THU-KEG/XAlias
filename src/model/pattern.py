@@ -91,6 +91,12 @@ class Verbalizer(object):
         self.model = model
         self.kwargs = kwargs
         self.args = args
+        if 'top_p_cpm' in self.kwargs.keys():
+            self.kwargs['top_p'] = self.kwargs['top_p_cpm']
+            del self.kwargs['top_p_cpm']
+        if 'num_beams_cpm' in self.kwargs.keys():
+            self.kwargs['num_beams'] = self.kwargs['num_beams_cpm']
+            del self.kwargs['num_beams_cpm']
         for k in signal_arg_keys:
             v = args.__dict__[k]
             # if k == 'alias_table_num':
@@ -457,9 +463,13 @@ class Verbalizer(object):
                     return [['']], [[]]
                 else:
                     beams = []
-                    if 'num_beams' in self.kwargs.keys():
-                        # beam search
-                        beams = self.cpm2_beam_search(input_text)
+                    if self.kwargs:
+                        #  cpm2 can use beam search there with kwargs
+                        if 'num_beams' in self.kwargs.keys():
+                            # beam search
+                            beams = self.cpm2_beam_search(input_text)
+                        else:
+                            beams.append(self.cpm2_sample_text(input_text))
                     else:
                         # sample with different params
                         if self.args.model_name == 'cpm2':

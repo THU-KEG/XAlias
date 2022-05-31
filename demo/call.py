@@ -51,7 +51,7 @@ def call_prompt_generation(args, model=None):
         else:
             # huggingface
             model = None
-    verbalizer = Verbalizer(args.language, args.task)
+    verbalizer = Verbalizer(args.language, args.alias_task)
     verbalizer.set_cpm2(model, cpm2_kwargs, args)
     src_word = args.src_word
     alias_tables = get_alias_example_tables(args)
