@@ -42,7 +42,7 @@ def get_alias_example_tables(args):
     return alias_tables
 
 
-def call_prompt_generation(args, model=None):
+def call_prompt_generation(args, model=None, tokenizer=None, _kwargs=None, device=None):
     cpm2_kwargs = reduce_args(args)
     np.random.seed(args.seed)
     if not model:
@@ -51,14 +51,24 @@ def call_prompt_generation(args, model=None):
         else:
             # huggingface
             model = None
+    logging.info("Verbalizer:")
+    logging.info(args.language)
+    logging.info(args.alias_task)
     verbalizer = Verbalizer(args.language, args.alias_task)
-    verbalizer.set_cpm2(model, cpm2_kwargs, args)
+    if args.language == 'ch' and args.model_name == 'cpm2':
+        verbalizer.set_cpm2(model, cpm2_kwargs, args)
+    else:
+        verbalizer.set_glm(args, model, tokenizer, _kwargs, device)
     src_word = args.src_word
+    logging.info("get_alias_example_tables:")
     alias_tables = get_alias_example_tables(args)
     if args.rank_strategy == "frequency":
+        logging.info("fast_gen_by_prompt:")
+        logging.info(src_word)
+        logging.info(args.model_name)
         pred_words, pattern2beams = verbalizer.fast_gen_by_prompt(args.alias_type, src_word,
-                                                                       args.task_definition,
-                                                                       alias_tables)
+                                                                  args.task_definition,
+                                                                  alias_tables)
     else:
         pred_words, pattern2beams = verbalizer.cpm2_gen_by_prompt(args.alias_type, src_word,
                                                                   args.task_definition,
@@ -179,21 +189,24 @@ def main():
         print('Time cost = %fs' % (time_end - time_start))
 
 
-def prompt_with_json(model, clientJson):
+def prompt_with_json(model, clientJson, tokenizer=None, _kwargs=None, device=None):
     parser = argparse.ArgumentParser()
     parser = add_test_param(parser)
     parser = add_decode_param(parser)
     args = parser.parse_args([])
     args.src_word = clientJson["entity"]
     args.language = clientJson["lang"]
+    if args.language == 'en':
+        args.model_name = 'glm'
+    logging.info("In prompt_with_json args are: " + str(args.__dict__))
     if clientJson["type"] != 'all':
         args.alias_type = clientJson["type"]
-        pred_words = {clientJson["type"]: call_prompt_generation(args, model)}
+        pred_words = {clientJson["type"]: call_prompt_generation(args, model, tokenizer, _kwargs, device)}
     else:
         pred_words = {}
         for alias_type in types:
             args.alias_type = alias_type
-            pred_words[alias_type] = call_prompt_generation(args, model)
+            pred_words[alias_type] = call_prompt_generation(args, model, tokenizer, _kwargs, device)
     return pred_words
 
 

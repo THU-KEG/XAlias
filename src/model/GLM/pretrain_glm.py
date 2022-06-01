@@ -16,6 +16,7 @@
 """Pretrain GPT2"""
 
 # Flag to use Pytorch ddp which uses overlapping communication and computation.
+import logging
 from datetime import datetime
 import os
 import random
@@ -481,6 +482,8 @@ def initialize_distributed(args):
     if args.local_rank is not None:
         device = args.local_rank
     torch.cuda.set_device(device)
+    logging.info("args.local_rank")
+    logging.info(args.local_rank)
     # Call the init process
     init_method = 'tcp://'
     args.master_ip = os.getenv('MASTER_ADDR', 'localhost')

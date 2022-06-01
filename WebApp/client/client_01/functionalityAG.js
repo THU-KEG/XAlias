@@ -3,6 +3,7 @@ var homeUrl = "http://103.238.162.32:5314/"; // place here the URL to the server
 var raw_coref_chains;
 var pormpt_alias_result;
 var entity_name;
+var lang;
 var top_k = 5;
 var alias_type2explain = {
     'prefix_extend': '前缀扩写,比如 夏宫::=彼得大帝夏宫',
@@ -76,7 +77,7 @@ function onNameSubmit() {
     entity_name = entity;
     // var lang = $("input[name='lang']:checked").val();
     // var alias_type = $("#alias_type").val();
-    var lang = "ch";
+    lang = $("#lang").val();
     var alias_type = "all";
     // send the server the entity name:
     var clientId = 1;
@@ -202,6 +203,10 @@ function onClickCorefChain(alias_mention) {
     }
     // concat the document and add　<b>  to the mention
     var final_coref_text = "";
+    var separator = "";
+    if (lang == "EN") {
+        separator = ' ';
+    }
     for (i = 0; i < coref_document.length; i++) {
         var sentence = coref_document[i];
         for (j = 0; j < sentence.length; j++) {
@@ -211,7 +216,7 @@ function onClickCorefChain(alias_mention) {
             if (tgt_mention) {
                 final_coref_text = checkMentionSpanEnd(i, j, tgt_mention, final_coref_text);
             }
-            final_coref_text = final_coref_text + sentence[j];
+            final_coref_text = final_coref_text + sentence[j] + separator;
         }
     }
 

@@ -194,7 +194,7 @@ def add_training_args(parser):
     group.add_argument('--DDP-impl', default='none', choices=['local', 'torch', 'none'],
                        help='which DistributedDataParallel implementation to use.')
 
-    group.add_argument('--local_rank', type=int, default=None,
+    group.add_argument('--local_rank', type=int, default=1,
                        help='local rank passed from distributed launcher')
     # BlockLM training args
     group.add_argument('--block-lm', action='store_false', help="whether use the BlockLM pre-training")
@@ -415,7 +415,7 @@ def get_args():
     # Include DeepSpeed configuration arguments
     parser = deepspeed.add_config_arguments(parser)
 
-    args = parser.parse_args()
+    args = parser.parse_args([])
     '''
     args_dict = vars(parser.parse_args())
     with open('glm_config.json', 'w') as f:

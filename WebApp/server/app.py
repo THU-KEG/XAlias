@@ -7,6 +7,7 @@ import tornado.options
 import tornado.web
 import numpy as np
 from collections import Counter
+from src.model.GLM.generate_samples import init_glm
 from tornado.options import define, options
 import WebApp.server.params as params
 from demo.call import prompt_with_json, coref_with_json, dict_with_json
@@ -25,6 +26,7 @@ TYPE_GET_DICT_ALIAS = 2
 # m_infoManager = InfoManager()
 
 # load model
+english_model, tokenizer, _kwargs, device = init_glm()
 chinese_model = bminf.models.CPM2(device=params.gpu_id)
 # load coref result
 logging.info("start reading")
@@ -50,6 +52,7 @@ class PostHandler(tornado.web.RequestHandler):
         try:
             # load the json received from the client:
             clientJson = json.loads(self.request.body.decode('utf-8'))
+            clientJson["lang"] = clientJson["lang"].lower()
             logging.info('Got JSON data: ' + str(clientJson))
             self.entity_name = clientJson["entity"]
             requestType, clientId = self.getRequestTypeFromClientJson(clientJson)
@@ -86,10 +89,12 @@ class PostHandler(tornado.web.RequestHandler):
     def getPromptAliasJson(self, clientJson):
         if clientJson["lang"] == "ch":
             model = chinese_model
+            type2alias_list = prompt_with_json(model, clientJson)
             # model = None
         else:
-            model = None
-        type2alias_list = prompt_with_json(model, clientJson)
+            logging.info('English getPromptAliasJson: ')
+            model = english_model
+            type2alias_list = prompt_with_json(model, clientJson, tokenizer, _kwargs, device)
         alias_list = self.sort_prompt_type2alias_list(type2alias_list)
         dict_reply = {"reply_get_prompt_alias": {"alias_list": self.normalize(alias_list)}}
         jsonReply = json.dumps(dict_reply, ensure_ascii=False)

@@ -78,14 +78,17 @@ class Verbalizer(object):
                         if self.language == 'ch':
                             prefix += key_word + self.g_patterns[prefix_type][p_id] + alias + '，'
                         else:
-                            prefix += key_word + self.g_patterns[prefix_type][p_id] + alias + '. '
+                            prefix += key_word + ' ' + self.g_patterns[prefix_type][p_id] + ' ' + alias + '. '
             sequence = self.convert(prefix, prefix_type, src_word, p_id)
             results.append(sequence)
         return results
 
     def convert(self, prefix, prefix_type, src_word, pattern_id=0):
         pattern = self.patterns[prefix_type][pattern_id]
-        return prefix + src_word + pattern
+        if self.language == 'ch':
+            return prefix + src_word + pattern
+        else:
+            return prefix + ' ' + src_word + ' ' + pattern + ' [MASK].'
 
     def set_cpm2(self, model: bminf.models.CPM2, kwargs: dict, args: argparse.ArgumentParser):
         self.model = model

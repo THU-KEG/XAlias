@@ -24,7 +24,17 @@ patterns = {
         'fill': [
             'is also called [MASK].', 'is known as [MASK].',
             'is the short for [MASK].', '[MASK] is the short for ',
-        ]
+        ],
+        'generate': {
+            'prefix_extend': [', a.k.a.'],
+            'prefix_reduce': [', abbr.'],
+            'suffix_extend': ['is also called'],
+            'suffix_reduce': [', abbr.'],
+            'expansion': ['is the short for'],
+            'abbreviation': [', abbr.'],
+            'synonym': ['is also called'],
+            'punctuation': ['is also called'],
+        }
     }
 
 }
@@ -34,36 +44,57 @@ en_few_shot_alias_table = {
         'trundles': ['dr . trundles'],
         'bull netch': ['giant bull netch'],
         'ubar': ['lost city of ubar'],
+        'percy': ['lord percy'],
+        'irma': ['princess irma'],
     },
     'prefix_reduce': {
         'terran empire': ['empire'],
         'vorok \' s battle cruiser': ['battle cruiser'],
         'outpost 8': ['8'],
+        'romulan senate': ['senate'],
+        'power generator': ['generator'],
     },
     'suffix_extend': {
         'crab': ['crabs'],
         'heishin': ['heishin \' s'],
         'latvia': ['latvian'],
+        'bbc': ['bbc television'],
+        'news': ['news network'],
     },
     'suffix_reduce': {
         'yusaku fujiki': ['yusaku'],
         'radius ( geometry )': ['radius'],
         'resignation': ['resign'],
+        'crystal ( cat )': ['crystal'],
+        'planet x ( novel )': ['planet x'],
     },
     'abbreviation': {
         'yu - gi - oh ! gx - episode 092': ['episode 92'],
         'delta eagle ( outfit )': ['delta eagle outfit'],
         'union of soviet socialist republics': ['ussr'],
+        'united states of america': ['usa'],
+        'Queens Park Rangers': ['QPR'],
     },
     'expansion': {
         'subspace tear': ['tear in subspace'],
         'ring of myrkul': ['rings of myrkul'],
         'thorass languages': ['thorass language family'],
+        'CEO': ['Chief Executive Officer'],
+        'ACL': ['the Association for Computational Linguistics'],
     },
     'synonym': {
         'harpy': ['harpies'],
         'costume': ['suit'],
         'oath': ['sworn'],
+        'bunny': ['rabbit'],
+        'match': ['game'],
+    },
+    'punctuation':{
+        'The Lord of the Rings': ['"The Lord of the Rings"'],
+        'Night at the Opera': ['"Night at the Opera"'],
+        'To Kill A Mockingbird': ['"To Kill A Mockingbird"'],
+        'Gone with the wind': ['"Gone with the wind"'],
+        'Living in the Shadows': ['"Living in the Shadows"'],
     }
 
 }
