@@ -2,6 +2,7 @@ import argparse
 import json
 import pickle
 import jieba
+import random
 import os
 from tqdm import tqdm
 from demo.coref.resolution import parse_xlink_text, restrict_length
@@ -185,9 +186,12 @@ def sample(args):
     final_ent_id2corpus = {}
     for ent_id, _lst in ent_id2corpus.items():
         final_ent_id2corpus[ent_id] = []
-        sorted_lst = sorted(_lst, key=lambda dic: dic["raw_text_len"])
+        if args.random_policy == 'sort':
+            _lst = sorted(_lst, key=lambda dic: dic["raw_text_len"])
+        else:
+            random.shuffle(_lst)
         total_token_num = 0
-        for corpus_dict in sorted_lst:
+        for corpus_dict in _lst:
             if total_token_num < args.context_window:
                 if corpus_dict["raw_text_len"] + total_token_num < args.context_window:
                     final_ent_id2corpus[ent_id].append(corpus_dict)
@@ -197,6 +201,7 @@ def sample(args):
                         missing_tokens_num = args.context_window - total_token_num
                         corpus_dict["raw_text"] = corpus_dict["raw_text"][:missing_tokens_num]
                         final_ent_id2corpus[ent_id].append(corpus_dict)
+                        total_token_num += missing_tokens_num
                     else:
                         break
             else:
@@ -224,11 +229,15 @@ def work():
     parser.add_argument('--search_passage_with', type=str, default='entity',
                         choices=['entity', 'aliases'])
     # sample parameter
+    parser.add_argument('--seed', type=int, default=1453)
+    parser.add_argument('--random_policy', type=str, default='shuffle',
+                        choices=['shuffle', 'sort'])
     parser.add_argument('--context_window', type=int, default=100)
     parser.add_argument('--missing_tokens_policy', type=str, default='fill',
                         choices=['fill', 'ignore'])
 
     args = parser.parse_args()
+    random.seed(args.seed)
     if args.task == 'filter':
         filter_kb(args)
     elif args.task == 'dump':

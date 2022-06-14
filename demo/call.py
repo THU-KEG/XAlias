@@ -198,7 +198,7 @@ def prompt_with_json(model, clientJson, tokenizer=None, _kwargs=None, device=Non
     args.language = clientJson["lang"]
     if args.language == 'en':
         args.model_name = 'glm'
-    logging.info("In prompt_with_json args are: " + str(args.__dict__))
+    logging.warning("In prompt_with_json args are: " + str(args.__dict__))
     if clientJson["type"] != 'all':
         args.alias_type = clientJson["type"]
         pred_words = {clientJson["type"]: call_prompt_generation(args, model, tokenizer, _kwargs, device)}
