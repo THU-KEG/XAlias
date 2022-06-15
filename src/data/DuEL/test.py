@@ -3,6 +3,7 @@ import argparse
 import os
 import numpy as np
 import json
+from stanfordnlp.server import CoreNLPClient
 import pickle
 import WebApp.server.params as params
 from src.data.DuEL.filter import add_ent_name
@@ -62,10 +63,34 @@ def get_alias_result(args, ent_id, src_word, corpus_dicts):
             model = english_model
             pred_words = prompt_with_json(model, client_json, tokenizer, _kwargs, device)
     else:
-        # TODO coref
+        # coref
         pred_words = []
         if args.alias_source == 'coref':
-            pass
+            with CoreNLPClient(
+                    properties="chinese",
+                    annotators=["tokenize,ssplit,coref"],
+                    endpoint="http://localhost:5114",
+                    timeout=30000, memory='16G') as client:
+                for corpus_dict in corpus_dicts:
+                    if args.lang == "ch":
+                        text = "".join(corpus_dict["raw_text"])
+                    else:
+                        text = " ".join(corpus_dict["raw_text"])
+                    # start coref
+                    coref_pred_words = []
+                    ann = client.annotate(text=text, properties={"inputFormat": "text", "outputFormat": "json"})
+                    for coref_chain in ann["corefs"].values():
+                        has_alias = False
+                        for _dict in coref_chain:
+                            if _dict["text"] == src_word:
+                                has_alias = True
+                                break
+                        if has_alias:
+                            for _dict in coref_chain:
+                                pred_word = _dict["text"]
+                                if pred_word != src_word:
+                                    coref_pred_words.append(pred_word)
+                    pred_words.extend(coref_pred_words)
         else:
             # xlink
             for corpus_dict in corpus_dicts:
