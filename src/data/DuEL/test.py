@@ -16,12 +16,9 @@ logging.basicConfig(level=logging.ERROR,
                     format='%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s')
 
 ENABLE_EN_GLM = False
-# load model
-if ENABLE_EN_GLM:
-    from src.model.GLM.generate_samples import init_glm
 
-    english_model, tokenizer, _kwargs, device = init_glm()
-chinese_model = bminf.models.CPM2(device=params.gpu_id)
+
+# load model
 
 
 def get_id2alias_table(duel_dir, corpus_dir, ent_ids):
@@ -53,14 +50,13 @@ def get_id2alias_table(duel_dir, corpus_dir, ent_ids):
     return id2alias_table, id2subject
 
 
-def get_alias_result(args, ent_id, src_word, corpus_dicts):
+def get_alias_result(args, model, ent_id, src_word, corpus_dicts, tokenizer=None, _kwargs=None, device=None):
     if args.alias_source == 'prompt':
         client_json = {"lang": args.lang, "type": "all", "entity": src_word}
-        if args.lang == "ch":
-            model = chinese_model
+        if args.lang == "ch" and args.plm == 'cpm2':
+
             pred_words = prompt_with_json(model, client_json)
         else:
-            model = english_model
             pred_words = prompt_with_json(model, client_json, tokenizer, _kwargs, device)
     else:
         # coref
@@ -116,12 +112,19 @@ def test_alias(args):
         print(f"[0]Total entity in corpus is {len(ent_ids)}")
     # data path
     id2alias_table, id2subject = get_id2alias_table(args.duel_dir, args.corpus_dir, ent_ids)
+    # PLM
+    if args.lang == "ch" and args.plm == 'cpm2':
+        model = bminf.models.CPM2(device=params.gpu_id)
+        tokenizer, _kwargs, device = None, None, None
+    else:
+        from src.model.GLM.generate_samples import init_glm
+        model, tokenizer, _kwargs, device = init_glm(args.lang)
     # generate/discover alias using PLM/corpus
     ent_id2result = {}
     for ent_id, alias_table in tqdm(id2alias_table.items()):
         src_word = id2subject[ent_id]
         corpus_dicts = ent_id2corpus[ent_id]
-        pred_words = get_alias_result(args, ent_id, src_word, corpus_dicts)
+        pred_words = get_alias_result(args, model, ent_id, src_word, corpus_dicts, tokenizer, _kwargs, device)
         # save
         ent_id2result[ent_id] = {"src": src_word, "tgt": alias_table, "pred": pred_words}
     # output
@@ -187,7 +190,10 @@ def evaluate(args):
             for _lst in result["pred"].values():
                 for __lst in _lst:
                     pred_lst.extend(__lst)
-            result["pred"] = pred_lst
+            # sort
+            counter = Counter(pred_lst)
+            pred_words = [rst[0] for rst in counter.most_common()]
+            result["pred"] = pred_words
         result["pred"] = result["pred"][:args.max_candidate_num]
         # calculate EM and True and hits
         best_EM = 0
@@ -226,6 +232,8 @@ def work():
     # task
     parser.add_argument('--lang', type=str, default='ch',
                         choices=['ch', 'en'])
+    parser.add_argument('--plm', type=str, default='cpm2',
+                        choices=['cpm2', 'glm'])
     parser.add_argument('--alias_source', type=str, default='prompt',
                         choices=['prompt', 'coref', 'xlink'])
     parser.add_argument('--task', type=str, default='test',

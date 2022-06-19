@@ -124,7 +124,7 @@ def work(args, cpm2_kwargs):
 
     else:
         # huggingface
-        model, tokenizer, _kwargs, device = init_glm()
+        model, tokenizer, _kwargs, device = init_glm(args.language)
 
     print("kwargs:", _kwargs)
     if args.test:

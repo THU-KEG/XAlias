@@ -86,8 +86,11 @@ class Verbalizer(object):
     def convert(self, prefix, prefix_type, src_word, pattern_id=0):
         pattern = self.patterns[prefix_type][pattern_id]
         if self.language == 'ch':
+            if self.glm_args:
+                return prefix + src_word + pattern + '[MASK]。'
             return prefix + src_word + pattern
         else:
+            # only glm
             return prefix + ' ' + src_word + ' ' + pattern + ' [MASK].'
 
     def set_cpm2(self, model: bminf.models.CPM2, kwargs: dict, args: argparse.ArgumentParser):
