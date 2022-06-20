@@ -405,6 +405,7 @@ def init_glm(lang='en'):
     # Arguments.
     args = get_args()
     if lang == 'ch':
+        args.tokenizer_type = 'ChineseSPTokenizer'
         args.load_pretrained = '/data/tsq/glm/blocklm-10b-chinese'
     args.mem_length = args.seq_length + args.mem_length - 1
 

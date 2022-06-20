@@ -10,6 +10,10 @@ from difflib import SequenceMatcher
 from src.model.const import patterns, few_shot_alias_table
 from collections import Counter
 from typing import List, Tuple
+import re
+
+ref_regex = re.compile(r"\[\d\]|\[\d-\d\]")
+noise_regex = re.compile(r"等+")
 
 signal_arg_keys = ['max_tokens_scale', 'top_n_range']
 
@@ -475,7 +479,11 @@ class Verbalizer(object):
                             # beam search
                             beams = self.cpm2_beam_search(input_text)
                         else:
-                            beams.append(self.cpm2_sample_text(input_text))
+                            if not self.glm_args:
+                                beams.append(self.cpm2_sample_text(input_text))
+                            else:
+                                # glm
+                                beams.append(self.glm_sample_text(input_text))
                     else:
                         # sample with different params
                         if self.args.model_name == 'cpm2':
@@ -498,18 +506,21 @@ class Verbalizer(object):
         tidy_beams = []
         # deal with punctuation
         if self.args.language == 'ch':
-            separated_chars = '，。\n'
-            stopped_chars = "！？，｡、＂＇（）：；\n“"
+            separated_chars = [',', '\n', '，', '。', '和', '与']
+            stopped_chars = "！？，｡、＂＇：；\n“"
         else:
             separated_chars = [',', '\n', '.', 'or', 'and']
-            stopped_chars = "!?,.＇();:\n"
+            stopped_chars = "!?,.＇;:\n"
         for beam in beams:
+            beam = ref_regex.sub("", beam)  # for glm
+            beam = noise_regex.sub("", beam)  # for glm
             striped = beam.strip(stopped_chars)
             has_separated_char = False
             for separated_char in separated_chars:
                 if separated_char in striped:
                     sp_words = striped.split(separated_char)
                     for sp_word in sp_words:
+                        sp_word = sp_word.strip()
                         if len(sp_word) > 0:
                             tidy_beams.append(sp_word)
                     has_separated_char = True

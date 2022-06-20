@@ -209,6 +209,7 @@ def evaluate(args):
     score["EM"] /= data_num
     score["True"] /= data_num
     score["hits"] = hit_evaluate(results, args.max_candidate_num)
+    score["results"] = list(results)
     with open(os.path.join(output_dir, f'{args.alias_source}_score.json'), 'w', encoding='utf-8') as f_hits:
         f_hits.write(json.dumps(score, ensure_ascii=False, indent=4))
 

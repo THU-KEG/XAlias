@@ -196,7 +196,7 @@ def prompt_with_json(model, clientJson, tokenizer=None, _kwargs=None, device=Non
     args = parser.parse_args([])
     args.src_word = clientJson["entity"]
     args.language = clientJson["lang"]
-    if args.language == 'en':
+    if args.language == 'en' or _kwargs:
         args.model_name = 'glm'
     logging.warning("In prompt_with_json args are: " + str(args.__dict__))
     if clientJson["type"] != 'all':
