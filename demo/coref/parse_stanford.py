@@ -121,6 +121,8 @@ def main():
     else:
         # parse all
         origin_path = os.path.join(args.data_dir, f'standard_{args.src_text}.txt')
+        if not os.path.exists(origin_path):
+            origin_path = os.path.join(args.data_dir, f'standard_{args.src_text}.json')
         lines = open(origin_path, 'r').readlines()
         turns = int(len(lines) / (args.processes - 1))
         id2coref_alias = {}

@@ -178,6 +178,9 @@ def hit_evaluate(_results, num_return_sequences):
 def evaluate(args):
     output_dir = os.path.join(args.output_dir, f"{args.context_window}ctx")
     input_path = os.path.join(output_dir, f"{args.alias_source}.json")
+    if not os.path.exists(input_path):
+        output_dir = os.path.join(args.output_dir, f"ctx{args.context_window}", "bd")
+        input_path = os.path.join(output_dir, f"{args.alias_source}.json")
     with open(input_path, 'r') as fin:
         ent_id2result = json.load(fin)
     results = ent_id2result.values()
