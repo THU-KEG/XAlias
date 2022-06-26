@@ -50,10 +50,11 @@ def adapt(args):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     coref_alias_path = os.path.join(output_dir, f"coref_stanford_parse_all_{args.src_text}.json")
-    bd_id2coref_alias = json.load(open(coref_alias_path, 'r'))
     output_path = os.path.join(output_dir, f"standard_{args.src_text}.json")
     if args.task == 'parse':
         fout = check_fout(output_path)
+    else:
+        bd_id2coref_alias = json.load(open(coref_alias_path, 'r'))
     # data path
     input_path = os.path.join(args.duel_dir, f"{args.src_text}.json")
     with open(input_path, 'r') as fin:

@@ -196,7 +196,12 @@ def evaluate(args):
             # sort
             counter = Counter(pred_lst)
             pred_words = [rst[0] for rst in counter.most_common()]
-            result["pred"] = pred_words
+            # remove src_name
+            final_words = []
+            for word in pred_words:
+                if result["src"] != word:
+                    final_words.append(word)
+            result["pred"] = final_words
         result["pred"] = result["pred"][:args.max_candidate_num]
         # calculate EM and True and hits
         best_EM = 0
