@@ -90,7 +90,7 @@ def get_id2ent_name(args):
                 # print("Error in reading line {}".format(i))
                 # print(line)
                 # raise RuntimeError
-            id2ent_name[bdi] = ent_name
+            id2ent_name[bdi] = ent_name.lower()
     print("[1]Finish reading")
     result_path = os.path.join(args.data_dir, "{}.pkl".format(args.result_file_name))
     with open(result_path, 'wb') as fout:
@@ -209,7 +209,7 @@ def work():
     # path params
     parser.add_argument('--data_dir', type=str, default='/data/tsq/xlink/bd')
     parser.add_argument('--src_file', type=str, default='mention_anchors.txt',
-                        choices=['mention_anchors.txt', 'bd_instance_ID.txt'])
+                        choices=['mention_anchors.txt', 'bd_instance_ID.txt', 'en_instance_ID.txt'])
     parser.add_argument('--result_file_name', type=str, default='id2mention')
     parser.add_argument('--task', type=str, default='id2mention', choices=['id2mention', 'id2ent_name',
                                                                            'mention2ids', 'instance_alias',

@@ -1,6 +1,7 @@
 # coding: utf-8
 import pickle
 import random
+import json
 from src.data.discover_alias import HasAlias
 from src.model.const import few_shot_alias_table
 
@@ -95,16 +96,37 @@ class AliasDataset:
         return alias_tables
 
 
+def sample():
+    record_path = '/data/tsq/xlink/wiki/has_alias_relation_record.pkl'
+    save_path = '/data/tsq/xlink/wiki/sampled_example.json'
+    old_alias_table = few_shot_alias_table['en']
+    new_alias_table = {}
+    for k in old_alias_table.keys():
+        data_set = AliasDataset(record_path, k, 'valid')
+        src2tgt = {}
+        for src_word, tgt_word in data_set.sample(30, reverse=True):
+            if src_word in src2tgt.keys():
+                src2tgt[src_word].append(tgt_word)
+            else:
+                src2tgt[src_word] = [tgt_word]
+        new_alias_table[k] = src2tgt
+    with open(save_path, 'w') as json_file:
+        res = json.dumps(new_alias_table, sort_keys=False, indent=4)
+        json_file.write(res)
+    print("Save {}".format(save_path))
+
+
 if __name__ == "__main__":
     # t = AliasDataset('/data/tsq/xlink/bd/has_alias_relation_record.pkl', 'prefix_extend', 'test')
     # t = AliasDataset('/data/tsq/xlink/bd/purify/filter_english/pool_80/has_alias_relation_record.pkl', 'expansion',
     #                  'test')
-    t = AliasDataset('/data/tsq/xlink/BLINK/zeshel/blink_format/has_alias_relation_record.pkl', 'synonym',
-                     'valid')
+    # t = AliasDataset('/data/tsq/xlink/wiki/has_alias_relation_record.pkl', 'synonym',
+    #                  'valid')
     # t = AliasDataset('/data/tsq/xlink/bd/purify/filter_english/pool_100/has_alias_relation_record.pkl', 'synonym',
     #                  'test')
 
-    for _src_word, _tgt_word in t.sample(50, reverse=True):
-        print(_src_word)
-        print(_tgt_word)
-        print("#" * 20)
+    # for _src_word, _tgt_word in t.sample(50, reverse=True):
+    #     print(_src_word)
+    #     print(_tgt_word)
+    #     print("#" * 20)
+    sample()

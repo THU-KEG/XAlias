@@ -8,6 +8,7 @@ import re
 non_zh_reg = re.compile(u'[^\u4e00-\u9fa5]')
 en_reg = re.compile(u'[a-zA-Z]')
 punctuation = """！？｡＂＃＄％＆＇（）＊＋－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘'‛“”„‟…‧﹏"""
+is_bd = False
 
 
 class DuplicateException(Exception):
@@ -25,13 +26,21 @@ class HasAlias(object):
         else:
             assert len(target_words) == 1
             tgt_word = target_words[0]
-            if len(source_word) == len(tgt_word):
+            if is_bd:
+                src_len = len(source_word)
+                tgt_len = len(tgt_word)
+            else:
+                # english
+                src_len = len(source_word.split())
+                tgt_len = len(tgt_word.split())
+
+            if src_len == tgt_len:
                 if source_word == tgt_word:
                     raise DuplicateException(tgt_word)
                 else:
                     self.type = 'synonym'
             else:
-                if len(source_word) > len(tgt_word):
+                if src_len > tgt_len:
                     self.short_word = tgt_word
                     self.long_word = source_word
                     type_suffix = '_reduce'
@@ -46,7 +55,7 @@ class HasAlias(object):
                     self.type = 'prefix' + type_suffix
                 elif self.long_word[0] in punctuation or self.long_word[-1] in punctuation:
                     self.type = 'punctuation'
-                elif self.has_non_chinese_translate(tgt_word):
+                elif is_bd and self.has_non_chinese_translate(tgt_word):
                     self.type = 'bilingual'
                 else:
                     # these 2 word might be Synonym or Abbreviation
@@ -227,7 +236,11 @@ def work():
     parser.add_argument('--mention_file_name', type=str, default='id2mention')
     parser.add_argument('--ent_name_file_name', type=str, default='id2ent_name')
     parser.add_argument('--task', type=str, default='zeshel')
+    parser.add_argument('--lang', type=str, default='ch', choices=['en', 'ch'],
+                        help="type of saved file")
     args = parser.parse_args()
+    if args.lang == 'en':
+        is_bd = False
     src_file_path = os.path.join(args.data_dir, args.src_file)
     mention2ids = read_mention2ids(src_file_path)
     id2mention_json_path = os.path.join(args.data_dir, "{}.json".format(args.mention_file_name))

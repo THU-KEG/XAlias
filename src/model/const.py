@@ -1,3 +1,5 @@
+import json
+
 patterns = {
     'ch': {
         'fill': ['也被称为<span>。', '的别名是<span>。', '的缩写为<span>。', ',简称<span>。', '也作为<span>被熟知。'],
@@ -38,7 +40,7 @@ patterns = {
     }
 
 }
-
+"""
 en_few_shot_alias_table = {
     'prefix_extend': {
         'trundles': ['dr . trundles'],
@@ -98,6 +100,9 @@ en_few_shot_alias_table = {
     }
 
 }
+"""
+
+en_few_shot_alias_table = json.load(open('/data/tsq/xlink/wiki/sampled_example.json', 'r'))
 
 ch_few_shot_alias_table = {
     'prefix_extend': {

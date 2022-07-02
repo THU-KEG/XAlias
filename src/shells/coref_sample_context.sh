@@ -1,7 +1,7 @@
 PROCESS_SIZE=16
-CTX_SIZE=20000
-SRC_TXT="sample_entity_fill_20000tokens"
-DATA_DIR="/data/tsq/DuEL/filtered/coref/ctx20000/bd"
+CTX_SIZE=2000
+SRC_TXT="sample_entity_fill_2000tokens"
+DATA_DIR="/data/tsq/DuEL/filtered/coref/ctx2000/bd"
 
 python -m src.data.DuEL.filter --task 'sample' \
                                --search_passage_with 'entity' \

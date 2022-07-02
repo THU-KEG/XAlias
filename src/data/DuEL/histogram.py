@@ -5,7 +5,7 @@ import os
 import json
 import matplotlib.pyplot as plt
 
-context_windows = [100, 1000, 10000]
+context_windows = [50, 100, 250, 500, 625, 750, 875, 1000]
 
 
 def get_alias_hits(args):
@@ -47,7 +47,7 @@ def work(args):
         y_name: get_alias_hits(args),
         'alias_source': ['xlink'] * ctx_type_num + ['coref'] * ctx_type_num + ['prompt'] * ctx_type_num
     })
-    pic_name = f"ctx{ctx_type_num}_{y_name}"
+    pic_name = f"{args.plm}_atn{args.atn}_ctx{ctx_type_num}_{y_name}"
 
     f, ax = plt.subplots(figsize=(869 / 85, 513 / 85))
     if args.figure == 'histogram':
