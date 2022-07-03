@@ -110,9 +110,7 @@ def sample():
             else:
                 src2tgt[src_word] = [tgt_word]
         new_alias_table[k] = src2tgt
-    with open(save_path, 'w') as json_file:
-        res = json.dumps(new_alias_table, sort_keys=False, indent=4)
-        json_file.write(res)
+    json.dump(new_alias_table, open(save_path, 'w', encoding='utf8'), ensure_ascii=False, indent=4)
     print("Save {}".format(save_path))
 
 

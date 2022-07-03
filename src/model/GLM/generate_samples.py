@@ -396,7 +396,7 @@ def main():
     generate_samples(model, tokenizer, args, torch.cuda.current_device())
 
 
-def init_glm(lang='en'):
+def init_glm(lang='en', init_dist = True):
     print('Generate Samples')
 
     # Disable CuDNN.
@@ -404,13 +404,17 @@ def init_glm(lang='en'):
 
     # Arguments.
     args = get_args()
+    args.language = lang
     if lang == 'ch':
         args.tokenizer_type = 'ChineseSPTokenizer'
         args.load_pretrained = '/data/tsq/glm/blocklm-10b-chinese'
     args.mem_length = args.seq_length + args.mem_length - 1
 
     # Pytorch distributed.
-    initialize_distributed(args)
+    if init_dist:
+        initialize_distributed(args)
+    else:
+        torch.cuda.set_device(0)
 
     # Random seeds for reproducability.
     set_random_seed(args.seed)

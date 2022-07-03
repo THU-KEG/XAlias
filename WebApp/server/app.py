@@ -26,8 +26,10 @@ TYPE_GET_DICT_ALIAS = 2
 # m_infoManager = InfoManager()
 
 # load model
-english_model, tokenizer, _kwargs, device = init_glm()
-chinese_model = bminf.models.CPM2(device=params.gpu_id)
+english_model, en_tokenizer, en_kwargs, en_device = init_glm('en')
+chinese_model, ch_tokenizer, ch_kwargs, ch_device = 1, 2, 3, 4
+# chinese_model, ch_tokenizer, ch_kwargs, ch_device = init_glm('ch', False)
+# chinese_model = bminf.models.CPM2(device=params.gpu_id)
 # load coref result
 logging.info("start reading")
 bd_id2coref_alias = json.load(open('/data/tsq/xlink/coref/bd/coref_stanford_parse_all_abstract.json', 'r'))
@@ -89,12 +91,13 @@ class PostHandler(tornado.web.RequestHandler):
     def getPromptAliasJson(self, clientJson):
         if clientJson["lang"] == "ch":
             model = chinese_model
-            type2alias_list = prompt_with_json(model, clientJson)
+            # type2alias_list = prompt_with_json(model, clientJson)
+            type2alias_list = prompt_with_json(model, clientJson, ch_tokenizer, ch_kwargs, ch_device)
             # model = None
         else:
             logging.info('English getPromptAliasJson: ')
             model = english_model
-            type2alias_list = prompt_with_json(model, clientJson, tokenizer, _kwargs, device)
+            type2alias_list = prompt_with_json(model, clientJson, en_tokenizer, en_kwargs, en_device)
         alias_list = self.sort_prompt_type2alias_list(type2alias_list)
         dict_reply = {"reply_get_prompt_alias": {"alias_list": self.normalize(alias_list)}}
         jsonReply = json.dumps(dict_reply, ensure_ascii=False)

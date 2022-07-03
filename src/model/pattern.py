@@ -9,6 +9,8 @@ from src.data.discover_alias import punctuation
 from difflib import SequenceMatcher
 from src.model.const import patterns, few_shot_alias_table
 from collections import Counter
+import json
+import requests
 from typing import List, Tuple
 import re
 
@@ -554,9 +556,29 @@ class Verbalizer(object):
         return result_string
 
     def glm_sample_text(self, input_text) -> str:
-        result_string = call_glm_generate(self.model, self.tokenizer, self.glm_args, self.device, input_text)
+        if self.language == 'en':
+            result_string = call_glm_generate(self.model, self.tokenizer, self.glm_args, self.device, input_text)
+        else:
+            url = "http://localhost:6544/glm"
+            # payload = {"content": prompt, "max_length": limit}
+            payload = {"query": input_text, "limit": 30}
+            res = req_api(url=url, payload=payload)
+            logging.info("glm return raw")
+            logging.info(res)
+            result_string = res["data"]
+            logging.info("glm return")
+            logging.info(result_string)
         result = result_string.split("<|startofpiece|>")[1].strip()
         return result
+
+
+def req_api(url="", payload={}, method="POST", headers={}):
+    if headers == {}:
+        headers = {"Content-Type": "application/json;charset=utf8"}
+    payload = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    response = requests.request(method, url, data=payload, headers=headers)
+    result = response.json()
+    return result
 
 
 def get_cos_similar_matrix(v1, v2):
