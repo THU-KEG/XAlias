@@ -175,10 +175,11 @@ function onClickCorefChain(alias_mention) {
     var raw_chains = raw_coref_chains;
     openModal();
     // fill the content with coref chain
-    var i, j;
+    var i, j, m;
     var src_mention;
     var tgt_mention;
     var coref_document;
+    var coref_mention_pair;
     for (i = 0; i < raw_chains.length; i++) {
         var raw_chain = raw_chains[i];
         var mention_pair = raw_chain["coref_chain"];
@@ -186,14 +187,16 @@ function onClickCorefChain(alias_mention) {
             if (mention_pair[j]["text"] == alias_mention) {
                 tgt_mention = mention_pair[j];
                 // some coref_chain has 3 mentions or more
-                src_mention = mention_pair[mention_pair.length - j];
-                var k;
-                for (k = 0; k < mention_pair.length; k++) {
-                    if (mention_pair[k]["text"] == entity_name) {
-                        src_mention = mention_pair[k];
-                    }
-                }
+                var init_idx = (mention_pair.length + 1) % mention_pair.length;
+                src_mention = mention_pair[init_idx];
+                // var k;
+                // for (k = 0; k < mention_pair.length; k++) {
+                //     if (mention_pair[k]["text"].toLowerCase() == entity_name) {
+                //         src_mention = mention_pair[k];
+                //     }
+                // }
                 coref_document = raw_chain["document"];
+                coref_mention_pair = mention_pair;
                 break;
             }
         }
@@ -210,11 +213,14 @@ function onClickCorefChain(alias_mention) {
     for (i = 0; i < coref_document.length; i++) {
         var sentence = coref_document[i];
         for (j = 0; j < sentence.length; j++) {
-            if (src_mention) {
-                final_coref_text = checkMentionSpanEnd(i, j, src_mention, final_coref_text);
-            }
-            if (tgt_mention) {
-                final_coref_text = checkMentionSpanEnd(i, j, tgt_mention, final_coref_text);
+            // if (src_mention) {
+            //     final_coref_text = checkMentionSpanEnd(i, j, src_mention, final_coref_text);
+            // }
+            // if (tgt_mention) {
+            //     final_coref_text = checkMentionSpanEnd(i, j, tgt_mention, final_coref_text);
+            // }
+            for (m = 0; m < coref_mention_pair.length; m++) {
+                final_coref_text = checkMentionSpanEnd(i, j, coref_mention_pair[m], final_coref_text);
             }
             final_coref_text = final_coref_text + sentence[j] + separator;
         }

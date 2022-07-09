@@ -36,8 +36,8 @@ bd_id2coref_alias = json.load(open('/data/tsq/xlink/coref/bd/coref_stanford_pars
 wiki_id2coref_alias = json.load(open('/data/tsq/xlink/coref/wiki/coref_stanford_parse_all_abstract.json', 'r'))
 bd_mention2ids = pickle.load(open('/data/tsq/xlink/bd/mention2ids.pkl', 'rb'))
 wiki_mention2ids = pickle.load(open('/data/tsq/xlink/wiki/mention2ids.pkl', 'rb'))
-bd_id2mention = pickle.load(open('/data/tsq/xlink/bd/id2mention.pkl', 'rb'))
-wiki_id2mention = pickle.load(open('/data/tsq/xlink/wiki/id2mention.pkl', 'rb'))
+bd_id2mention = pickle.load(open('/data/tsq/xlink/bd/id2mention_prob.pkl', 'rb'))
+wiki_id2mention = pickle.load(open('/data/tsq/xlink/wiki/id2mention_prob.pkl', 'rb'))
 logging.info("finish reading")
 
 
@@ -55,6 +55,7 @@ class PostHandler(tornado.web.RequestHandler):
             # load the json received from the client:
             clientJson = json.loads(self.request.body.decode('utf-8'))
             clientJson["lang"] = clientJson["lang"].lower()
+            clientJson["entity"] = clientJson["entity"].lower()
             logging.info('Got JSON data: ' + str(clientJson))
             self.entity_name = clientJson["entity"]
             requestType, clientId = self.getRequestTypeFromClientJson(clientJson)

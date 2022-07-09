@@ -71,6 +71,38 @@ def get_id2mention(args):
     print("[4]Save {}".format(txt_result_file_path))
 
 
+def get_id2mention_prob(args):
+    src_file_path = os.path.join(args.data_dir, args.src_file)
+    id2mention_prob = {}
+    with open(src_file_path, 'r') as fin:
+        lines = fin.readlines()
+        len_lines = len(lines)
+        for line in tqdm(lines, total=len_lines):
+            pieces = line.strip().split('::;')
+            if len(pieces) != 6:
+                continue
+            mention = pieces[0]
+            ent_id = pieces[1]
+            link_ent_times = int(int(pieces[2]) * float(pieces[5]))
+            hypertext_prob = float(pieces[4])
+            mention_with_prob = {
+                "mention": mention,
+                "link_ent_times": link_ent_times,
+                "hypertext_prob": hypertext_prob,
+                "rank_score": link_ent_times * hypertext_prob
+            }
+            try:
+                id2mention_prob[ent_id].append(mention_with_prob)
+            except KeyError:
+                # We use list but not set. Maybe it will have duplicate mentions, let's see.
+                id2mention_prob[ent_id] = [mention_with_prob]
+    print("[1]Finish reading")
+    result_path = os.path.join(args.data_dir, "{}.pkl".format(args.result_file_name))
+    with open(result_path, 'wb') as fout:
+        pickle.dump(id2mention_prob, fout)
+        print("[2]Save {}".format(result_path))
+
+
 def get_id2ent_name(args):
     src_file_path = os.path.join(args.data_dir, args.src_file)
     id2ent_name = {}
@@ -209,14 +241,17 @@ def work():
     # path params
     parser.add_argument('--data_dir', type=str, default='/data/tsq/xlink/bd')
     parser.add_argument('--src_file', type=str, default='mention_anchors.txt',
-                        choices=['mention_anchors.txt', 'bd_instance_ID.txt', 'en_instance_ID.txt'])
+                        choices=['mention_anchors.txt', 'bd_instance_ID.txt',
+                                 'en_instance_ID.txt', 'link_prob.dat'])
     parser.add_argument('--result_file_name', type=str, default='id2mention')
     parser.add_argument('--task', type=str, default='id2mention', choices=['id2mention', 'id2ent_name',
                                                                            'mention2ids', 'instance_alias',
-                                                                           'zeshel'])
+                                                                           'zeshel', 'id2mention_prob'])
     args = parser.parse_args()
     if args.task == 'id2mention':
         get_id2mention(args)
+    elif args.task == 'id2mention_prob':
+        get_id2mention_prob(args)
     elif args.task == 'id2ent_name':
         get_id2ent_name(args)
     elif args.task == 'mention2ids':

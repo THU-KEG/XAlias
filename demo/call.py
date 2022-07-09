@@ -221,7 +221,7 @@ def coref_with_json(id2coref_alias, mention2ids, clientJson):
                 for coref_alias in coref_alias_list:
                     coref_chain = coref_alias["coref_chain"]
                     for mention in coref_chain:
-                        if mention["text"] != src_word:
+                        if mention["text"].lower() != src_word.lower():
                             has_exist = False
                             for _exist_alias in alias_list:
                                 if _exist_alias["text"] == mention["text"]:
@@ -249,11 +249,14 @@ def dict_with_json(id2mention, mention2ids, clientJson):
         for _id in ids:
             if _id in id2mention.keys():
                 mentions = id2mention[_id]
-                for i, mention_text in enumerate(mentions):
-                    if mention_text != src_word:
-                        # init
-                        # TODO use score in xlink to replace
-                        alias_data = {"text": mention_text, "score": i}
+                for i, mention_with_prob in enumerate(mentions):
+                    mention_text = mention_with_prob["mention"]
+                    if mention_text.lower() != src_word.lower():
+                        # use score in xlink
+                        alias_data = {
+                            "text": mention_text,
+                            "score": mention_with_prob["rank_score"]
+                        }
                         alias_list.append(alias_data)
         alias_list = sorted(alias_list, key=lambda k: (k.get('score')), reverse=True)
         return alias_list

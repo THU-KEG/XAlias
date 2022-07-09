@@ -117,8 +117,11 @@ def test_alias(args):
         model = bminf.models.CPM2(device=params.gpu_id)
         tokenizer, _kwargs, device = None, None, None
     else:
-        from src.model.GLM.generate_samples import init_glm
-        model, tokenizer, _kwargs, device = init_glm(args.lang)
+        if ENABLE_EN_GLM:
+            from src.model.GLM.generate_samples import init_glm
+            model, tokenizer, _kwargs, device = init_glm(args.lang)
+        else:
+            model, tokenizer, _kwargs, device = 1, 2, 3, 4
     # generate/discover alias using PLM/corpus
     ent_id2result = {}
     for ent_id, alias_table in tqdm(id2alias_table.items()):
