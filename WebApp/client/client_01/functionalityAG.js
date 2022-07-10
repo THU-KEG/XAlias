@@ -77,7 +77,13 @@ function onNameSubmit() {
     entity_name = entity;
     // var lang = $("input[name='lang']:checked").val();
     // var alias_type = $("#alias_type").val();
-    lang = $("#lang").val();
+    var placeholder = $("#entity").attr("placeholder");
+    if (placeholder == "输入实体词") {
+        lang = "CH"
+    } else {
+        lang = "EN"
+    }
+    // lang = $("#lang").val();
     var alias_type = "all";
     // send the server the entity name:
     var clientId = 1;
@@ -381,3 +387,17 @@ $('#entity').on('keypress', function (event) {
         return false;
     }
 });
+
+//activate chinese
+$(".tab_btn.ch").on('click', function () {
+    $('.tab_tag').removeClass('active');
+    var entity = document.getElementById('entity');
+    entity.setAttribute("placeholder", "输入实体词");
+});
+//default english
+$(".tab_btn.en").on('click', function () {
+    $('.tab_tag').addClass('active');
+    var entity = document.getElementById('entity');
+    entity.setAttribute("placeholder", "Enter entity name");
+});
+

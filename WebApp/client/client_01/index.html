@@ -24,7 +24,7 @@
                      style="display: flex; flex-flow: row wrap; position: absolute; top: 190px; left: 30%; width: 100%; align-items: center;">
                     <div class="ag-input"
                          style="align-content: center; position: relative; width: 40%; padding: 0px; border-radius: 0px;">
-                        <!----><input type="text" id="entity" autocomplete="off" placeholder="输入实体词" maxlength="20"
+                        <!----><input type="text" id="entity" autocomplete="off" placeholder="Enter entity name" maxlength="20"
                                       class="ag-input__inner" ><!----><!----><!----></div>
                     <button type="button" class="ag-button" onclick="onNameSubmit();return false"
                             style="color: white;">
@@ -34,14 +34,18 @@
                 </div>
                 <div class="checkapple"
                      style="display: flex; flex-flow: row wrap; position: absolute; top: 190px; left: 75%; width: 100%; align-items: center;">
-                    推荐搜索:&nbsp;
-                    <a class="suggest-search" onclick="onSuggestSearch('罗马');return false"> 罗马</a>&nbsp;
-                    <a class="suggest-search" onclick="onSuggestSearch('诸葛亮');return false"> 诸葛亮</a>&nbsp;
-                    <a class="suggest-search" onclick="onSuggestSearch('阿里巴巴');return false"> 阿里巴巴</a>
-                    <select class="form-select" id="lang" name="lang">
-                        <option>CH</option>
-                        <option>EN</option>
-                    </select>
+<!--                    推荐搜索:&nbsp;-->
+<!--                    <a class="suggest-search" onclick="onSuggestSearch('罗马');return false"> 罗马</a>&nbsp;-->
+<!--                    <a class="suggest-search" onclick="onSuggestSearch('诸葛亮');return false"> 诸葛亮</a>&nbsp;-->
+<!--                    <a class="suggest-search" onclick="onSuggestSearch('阿里巴巴');return false"> 阿里巴巴</a>-->
+<!--                    <select class="form-select" id="lang" name="lang">-->
+<!--                        <option>CH</option>-->
+<!--                        <option>EN</option>-->
+<!--                    </select>-->
+                    <div class="tab_tag active" style="width:120px;">
+                        <div class="tab_btn ch">Chinese</div>
+                        <div class="tab_btn en">English</div>
+                    </div>
                 </div>
 
 

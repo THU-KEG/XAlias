@@ -869,3 +869,45 @@
   -moz-appearance: none;
   appearance: none;
 }
+
+
+.tab_tag {
+  display: flex;
+  position: relative;
+  height: 44px;
+  width: 100%;
+  border-radius: 4px;
+  background-color: #8c9eaa;
+  cursor: pointer;
+}
+.tab_tag:before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  height: 36px;
+  width: calc(50% - 6px);/*考虑到会存在间距的情况下*/
+  top: 4px;
+  left: 4px;
+  background-color: #32953f;
+  border-radius: 2px;
+  -webkit-transition: background-color 0.2s ease-in-out,-webkit-transform 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,-webkit-transform 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out,-webkit-transform 0.2s ease-in-out;
+}
+.tab_tag.active:before {
+  background-color: #475dde;
+  -webkit-transform: translateX(calc(100% + 6px));
+  transform: translateX(calc(100% + 6px));
+}
+.tab_btn {
+  flex:1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-family: PingFangSC-Regular;
+  font-size: 14px;
+  color: #fff;
+  z-index: 1;
+}
