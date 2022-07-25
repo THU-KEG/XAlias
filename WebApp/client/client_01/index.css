@@ -214,7 +214,7 @@
   display: block;
   overflow-wrap: break-word;
   color: rgba(1, 82, 217, 1);
-  font-size: 70px;
+  font-size: 35px;
   letter-spacing: 4px;
   font-family: RobotoSlab-Regular;
   white-space: nowrap;
@@ -256,7 +256,7 @@
   display: block;
   overflow-wrap: break-word;
   color: rgba(102, 102, 102, 1);
-  font-size: 20px;
+  font-size: 25px;
   letter-spacing: 1px;
   font-family: HelveticaNeue-Medium;
   white-space: nowrap;
@@ -754,7 +754,7 @@
   height: 32px;
   padding: 0 10px;
   line-height: 30px;
-  font-size: 12px;
+  font-size: 20px;
   /*color: #409eff;*/
   border-width: 1px;
   border-style: solid;

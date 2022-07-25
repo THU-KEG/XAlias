@@ -5,22 +5,40 @@ var pormpt_alias_result;
 var entity_name;
 var lang;
 var top_k = 5;
-var alias_type2explain = {
-    'prefix_extend': '前缀扩写,比如 夏宫::=彼得大帝夏宫',
-    'prefix_reduce': '前缀缩写,比如 晋祠水母楼::=水母楼',
-    'suffix_extend': '后缀扩写,比如 永夜城::=永夜城（短篇小说）',
-    'suffix_reduce': '后缀缩写,比如 雍公馆（若水店）::=雍公馆',
-    'expansion': '扩写,比如 济南十九中学::=山东省济南第十九中学',
-    'abbreviation': '缩写,比如 国家国防动员委员会::=国动委',
-    'synonym': '同义词,比如 波尔多红酒::=波尔多葡萄酒',
-    'punctuation': '标点改写,比如 洛奇::=《洛奇》'
+var alias_type2explain_ch = {
+    'prefix_extend': '前缀扩写,比如 夏宫-->彼得大帝夏宫',
+    'prefix_reduce': '前缀缩写,比如 晋祠水母楼-->水母楼',
+    'suffix_extend': '后缀扩写,比如 永夜城-->永夜城（短篇小说）',
+    'suffix_reduce': '后缀缩写,比如 雍公馆（若水店）-->雍公馆',
+    'expansion': '扩写,比如 济南十九中学-->山东省济南第十九中学',
+    'abbreviation': '缩写,比如 国家国防动员委员会-->国动委',
+    'synonym': '同义词,比如 波尔多红酒-->波尔多葡萄酒',
+    'punctuation': '标点改写,比如 洛奇-->《洛奇》'
 };
+
+var alias_type2explain_en = {
+    'prefix_extend': ' The alias extends the entity name on the prefix, e.g. LeBron James-->King LeBron James',
+    'prefix_reduce': ' The alias shortens the entity name on the prefix,  e.g. Stephen Hawking-->Hawking',
+    'suffix_extend': ' The alias extends the entity name on the suffix, e.g. Gabriel Bordado-->Gabriel Bordado jr.',
+    'suffix_reduce': ' The alias shortens the entity name on the suffix, e.g. Arsenal F.C.-->Arsenal',
+    'expansion': ' The entity name contains all characters of the alias, e.g. OMG-->Oh My God',
+    'abbreviation': ' The alias contains all characters of the entity name,e.g. Los Angeles-->LA',
+    'synonym': ' The alias is a synonym of the entity name, e.g. Los Angeles-->La La Land',
+    'punctuation': ' The alias modifies the punctuation, e.g. JPEG-->.jpeg'
+};
+
+var alias_type2explain = {
+    "EN": alias_type2explain_en,
+    "CH": alias_type2explain_ch
+}
 
 var result_alias_type2alias_res_dict = {
     "dict_alias_result": null,
     "coref_alias_result": null,
     "prompt_alias_result": null,
 }
+
+var regex = new RegExp('\'', 'g');
 
 function sendRequest1(jsonObj, result_alias_type, reply_type) {
     // document.getElementById(result_alias_type).innerHTML = "waiting";
@@ -124,12 +142,13 @@ function addElementSpan(parent_id, alias_mention, alias_score) {
     var ag_link = document.createElement("a");
     ag_link.setAttribute("class", "ag-link");
     // add coref_chain modal
+    const new_mention = alias_mention.replace(regex, '\\\'');
     if (parent_id == "coref_alias_result") {
         ag_link.setAttribute("class", "ag-link ag-link-coref");
-        ag_link.setAttribute("onclick", "onClickCorefChain('" + alias_mention + "');return false");
+        ag_link.setAttribute("onclick", "onClickCorefChain('" + new_mention + "');return false");
     } else if (parent_id == "prompt_alias_result") {
         ag_link.setAttribute("class", "ag-link ag-link-coref");
-        ag_link.setAttribute("onclick", "onClickAlias('" + alias_mention + "');return false");
+        ag_link.setAttribute("onclick", "onClickAlias('" + new_mention + "');return false");
     }
     span.appendChild(ag_link);
     // add mention span to ag-link
@@ -142,7 +161,7 @@ function addElementSpan(parent_id, alias_mention, alias_score) {
     ag_link.appendChild(ag_divider);
     // add score to ag-link
     var score = document.createElement("span");
-    score.innerHTML = alias_score;
+    score.innerHTML = alias_score.toFixed(2);
     ag_link.appendChild(score);
 
 }
@@ -282,7 +301,7 @@ function onClickAlias(alias_mention) {
         final_coref_text += "<li>";
         final_coref_text += types[j];
         final_coref_text += ":";
-        final_coref_text += alias_type2explain[types[j]];
+        final_coref_text += alias_type2explain[lang][types[j]];
         final_coref_text += "</li>";
     }
     final_coref_text += "</ul>";
