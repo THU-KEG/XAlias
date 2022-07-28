@@ -30,15 +30,16 @@ def contain_bad_punctuation(text):
 def get_alias_example_tables(args):
     alias_tables = []
     # randomly sample examples from whole dataset or support pool
+    temp_seed = args.seed
     for i in range(args.alias_table_num):
         # use random seed to maintain reproducing ability
-        random.seed(args.seed)
+        random.seed(temp_seed)
         src_table = few_shot_alias_table[args.language][args.alias_type]
         example_keys = random.sample(src_table.keys(), args.task_specific_prompt_num)
         alias_table = {k: src_table[k] for k in example_keys}
         alias_tables.append(alias_table)
         # change seed for every table
-        args.seed += 1
+        temp_seed += 1
     return alias_tables
 
 
@@ -214,6 +215,8 @@ def coref_with_json(id2coref_alias, mention2ids, clientJson):
     src_word = clientJson["entity"]
     try:
         ids = mention2ids[src_word]
+        if clientJson["lang"] == "en":
+            ids = ids[:3]
         alias_list, raw_chains = [], []
         for _id in ids:
             if _id in id2coref_alias.keys():
@@ -245,6 +248,8 @@ def dict_with_json(id2mention, mention2ids, clientJson):
     src_word = clientJson["entity"]
     try:
         ids = mention2ids[src_word]
+        if clientJson["lang"] == "en":
+            ids = ids[:3]
         alias_list = []
         for _id in ids:
             if _id in id2mention.keys():

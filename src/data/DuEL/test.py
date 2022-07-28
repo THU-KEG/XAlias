@@ -7,6 +7,7 @@ from stanfordnlp.server import CoreNLPClient
 import pickle
 import WebApp.server.params as params
 from src.data.DuEL.filter import add_ent_name
+from src.data.DuEL.histogram import context_windows
 from tqdm import tqdm
 from collections import Counter
 from demo.call import prompt_with_json, coref_with_json, dict_with_json
@@ -142,6 +143,41 @@ def test_alias(args):
     evaluate(args)
 
 
+def get_ensemble(args, context_window, atn=1):
+    xlink_path = f"/data/tsq/DuEL/filtered/xlink/{context_window}ctx/xlink_score.json"
+    xlink_result_list = json.load(open(xlink_path, 'r'))["results"]
+    coref_path = f"/data/tsq/DuEL/filtered/coref/ctx{context_window}/bd/sample_entity_fill_{context_window}tokens_score.json"
+    coref_result_list = json.load(open(coref_path, 'r'))["results"]
+    prompt_path = f"/data/tsq/DuEL/filtered/glm/atn{atn}/100ctx/prompt_score.json"
+    prompt_result_list = json.load(open(prompt_path, 'r'))["results"]
+    # result
+    ent_id2result = {}
+    for i, xlink_result in enumerate(xlink_result_list):
+        src_word = xlink_result["src"]
+        alias_table = xlink_result["tgt"]
+        extraction_right_lst = xlink_result["pred"]
+        coref_pred_lst = coref_result_list[i]["pred"]
+        prompt_pred_lst = prompt_result_list[i]["pred"]
+        for coref_pred in coref_pred_lst:
+            if coref_pred not in extraction_right_lst:
+                extraction_right_lst.append(coref_pred)
+        for prompt_pred in prompt_pred_lst:
+            if prompt_pred not in extraction_right_lst:
+                extraction_right_lst.append(prompt_pred)
+        # save
+        ent_id2result[i] = {"src": src_word, "tgt": alias_table, "pred": extraction_right_lst}
+    # output
+    output_dir = os.path.join(f"/data/tsq/DuEL/filtered/glm/atn{atn}/100ctx/", f"ensemble{context_window}")
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    output_path = os.path.join(output_dir, f"ensemble.json")
+    with open(output_path, 'w') as fout:
+        json.dump(ent_id2result, fout, ensure_ascii=False, indent=4)
+    fout.close()
+    #  evaluate
+    evaluate(args, output_dir)
+
+
 def hit_evaluate(_results, num_return_sequences):
     hits = []
     results = list(_results)
@@ -178,8 +214,9 @@ def hit_evaluate(_results, num_return_sequences):
     return {"hits@" + str(i): v * 100 for i, v in enumerate(result)}
 
 
-def evaluate(args):
-    output_dir = os.path.join(args.output_dir, f"{args.context_window}ctx")
+def evaluate(args, output_dir=None):
+    if not output_dir:
+        output_dir = os.path.join(args.output_dir, f"{args.context_window}ctx")
     input_path = os.path.join(output_dir, f"{args.alias_source}.json")
     if not os.path.exists(input_path):
         output_dir = os.path.join(args.output_dir, f"ctx{args.context_window}", "bd")
@@ -247,12 +284,16 @@ def work():
     parser.add_argument('--plm', type=str, default='cpm2',
                         choices=['cpm2', 'glm'])
     parser.add_argument('--alias_source', type=str, default='prompt',
-                        choices=['prompt', 'coref', 'xlink'])
+                        choices=['prompt', 'coref', 'xlink', 'ensemble'])
     parser.add_argument('--task', type=str, default='test',
                         choices=['test', 'evaluate'])
     args = parser.parse_args()
     if args.task == 'test':
-        test_alias(args)
+        if args.alias_source == 'ensemble':
+            for context_window in context_windows:
+                get_ensemble(args, context_window, 1)
+        else:
+            test_alias(args)
     elif args.task == 'evaluate':
         evaluate(args)
 
