@@ -1,3 +1,5 @@
+import os.path
+
 import bminf
 import json
 import pickle
@@ -16,7 +18,7 @@ import logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s')  #
 # logging.disable(logging.INFO)
-define("port", default=5314, help="run on the given port", type=int)
+define("port", default=9627, help="run on the given port", type=int)
 # request types
 TYPE_ERROR = -1
 TYPE_GET_PROMPT_ALIAS = 0
@@ -85,6 +87,7 @@ class PostHandler(tornado.web.RequestHandler):
             logging.error('Caught error from unknown location: ' + str(e))
             returnJson = self.getErrorJson('Please try again. General error: ' + str(e))
 
+        logging.info('Sending JSON data: ' + str(returnJson))
         logging.info('Sending JSON data: ' + str(returnJson))
         self.write(json.dumps(returnJson))  # send JSON to client
         self.finish()
@@ -199,6 +202,9 @@ if __name__ == "__main__":
         template_path="/home/tsq/ybb/WebApp/client/client_01",
         static_path="/home/tsq/ybb/WebApp/client/client_01"
     )
-    http_server = tornado.httpserver.HTTPServer(app)
+    http_server = tornado.httpserver.HTTPServer(app, ssl_options={
+        "certfile": os.path.join("/home/tsq/ybb/WebApp/server/", "server.crt"),
+        "keyfile": os.path.join("/home/tsq/ybb/WebApp/server/", "server.key")
+    })
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()

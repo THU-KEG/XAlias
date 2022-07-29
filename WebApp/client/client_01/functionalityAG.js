@@ -1,5 +1,5 @@
 var requestUrl = "/alias";
-var homeUrl = "http://103.238.162.32:5314/"; // place here the URL to the server
+var homeUrl = "http://103.238.162.32:9627/"; // place here the URL to the server
 var raw_coref_chains;
 var pormpt_alias_result;
 var entity_name;
