@@ -21,7 +21,7 @@ data = json.dumps({
     alias_source:{},
     'lang':lang
     })
-url = f"https://{ip}:9627/alias"
+url = f"http://{ip}:9627/alias"
 result = requests.post(url, 
                 data=data,
                 verify=False
