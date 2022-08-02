@@ -216,7 +216,7 @@ def coref_with_json(id2coref_alias, mention2ids, clientJson):
     try:
         ids = mention2ids[src_word]
         if clientJson["lang"] == "en":
-            ids = ids[:3]
+            ids = ids[:1]
         alias_list, raw_chains = [], []
         for _id in ids:
             if _id in id2coref_alias.keys():
@@ -249,7 +249,7 @@ def dict_with_json(id2mention, mention2ids, clientJson):
     try:
         ids = mention2ids[src_word]
         if clientJson["lang"] == "en":
-            ids = ids[:3]
+            ids = ids[:1]
         alias_list = []
         for _id in ids:
             if _id in id2mention.keys():

@@ -52,7 +52,8 @@ def work():
             type2num = {}
             for alias_type, has_alias_list in has_alias_relation_record.items():
                 for i in range(len(has_alias_list)):
-                    alias_types.append(en2ch[alias_type])
+                    # alias_types.append(en2ch[alias_type])
+                    alias_types.append(alias_type)
                 print(alias_type, len(has_alias_list))
                 total_num += len(has_alias_list)
                 type2num[alias_type] = len(has_alias_list)
@@ -71,7 +72,7 @@ def work():
                 i += 1
 
             plt.title("Number of alias")
-            save_path = os.path.join(args.pic_dir, 'number_of_alias.png')
+            save_path = os.path.join(args.pic_dir, 'number_of_alias_enx.png')
             plt.savefig(save_path, bbox_inches='tight')
     elif args.task == 'num_return_sequences':
         record_json_path = os.path.join(args.at_result_dir, 'records.json')
