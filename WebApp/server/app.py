@@ -202,9 +202,6 @@ if __name__ == "__main__":
         template_path="/home/tsq/ybb/WebApp/client/client_01",
         static_path="/home/tsq/ybb/WebApp/client/client_01"
     )
-    http_server = tornado.httpserver.HTTPServer(app, ssl_options={
-        "certfile": os.path.join("/home/tsq/ybb/WebApp/server/", "server.crt"),
-        "keyfile": os.path.join("/home/tsq/ybb/WebApp/server/", "server.key")
-    })
+    http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
